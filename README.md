@@ -26,7 +26,7 @@ Features:
 
 ## Getting Started
 ### Model weights
-Before using DeepAden, you need to download two pretrained models and place them in the `models `directory: [ESM2](https://huggingface.co/facebook/esm2_t33_650M_UR50D/tree/main) and [MoLFormer](https://huggingface.co/ibm/MoLFormer-XL-both-10pct/tree/main). You can find other weights required for inference in the same directory.
+Before using DeepAden, you need to download two pretrained models and place them in the `models`directory: [ESM2](https://huggingface.co/facebook/esm2_t33_650M_UR50D/tree/main) and [MoLFormer](https://huggingface.co/ibm/MoLFormer-XL-both-10pct/tree/main). You can find other weights required for inference in the same directory.
 ### Installation
 DeepAden requires Python 3.8+ and several dependencies. We recommend using conda to manage the environment. All required packages can be installed using the provided `environment.yml` file. To set up the environment, follow these steps:
 
@@ -52,7 +52,7 @@ The `data` directory contains two essential files:
 The `example` directory contains FASTA files of A-domain amino acid sequences to be predicted, serving as input files for the model.
 
 ## Usage
-The run_DeepAden.sh script is provided to execute the complete DeepAden prediction pipeline, supporting parameter configurations including input FASTA file path (-i), output directory (-o), selection algorithm (-m, max-sep or top-k), and number of threads (-n). Detailed usage can be viewed via ./run_DeepAden.sh -h
+The run_DeepAden.sh script is provided to execute the complete DeepAden prediction pipeline, supporting parameter configurations including input FASTA file path (-f), output directory (-o), selection algorithm (-k, max-sep or top-k), and number of threads (-n). Detailed usage can be viewed via ./run_DeepAden.sh -h
 ```
 Usage: run_DeepAden.sh -f <fasta_file> [-o <output_dir>] [-p <plm_path>] [-c <cm_path>] [-r <reference_csv>] [-n <processes>] [-m] [-k <top_k>]
 
