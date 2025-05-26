@@ -2,7 +2,7 @@
 
 DeepAden is an explainable machine learning for substrate specificity prediction in nonribosomal peptide synthetases. The framework first trains a graph attention network to identify A-domain binding pocket around substrate using fused sequence and structural features derived from a protein language model, then employs cross-modal contrastive learning to jointly encode pocket-substrate interactions through protein and chemical language model, effectively addressing both substrate promiscuity and zero-shot prediction challenges.
 
-![alt text](Figures_Fig1.tif)
+![Fig 1](figure/Figures_Fig1.tif)
 
 ## Overview
 
@@ -10,7 +10,7 @@ The DeepAden framework integrates two core predictive models:
 - **Pocket prediction model**: Takes A-domain amino acid sequences as input and predicts the corresponding substrate-binding pocket residues.
 - **Substrate prediction model**: Evaluates binding probabilities between predicted pockets and molecules in a compound database, and employs either max-separation or top-k algorithms for candidate selection, with prediction confidence quantified through Gaussian Mixture Modeling (GMM) to ensure reliable results.
 
-![alt text](Figures_Fig6.tif)
+![Fig 6](figure/Figures_Fig6.tif)
 
 Features:
 - **Superior predictive performance**: DeepAden demonstrats better performance than currently published tools, particularly in handling highly divergent A-domains with enhanced robustness.
