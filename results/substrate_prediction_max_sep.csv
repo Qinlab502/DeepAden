@@ -1,0 +1,4 @@
+id,molecule_1,confidence_score_1,molecule_2,confidence_score_2,molecule_3,confidence_score_3
+ctg1_4534_AMP-binding.1,phenylalanine,1.0,dl-homophenylalanine,1.0,tyrosine,0.9997
+ctg1_4534_AMP-binding.2,proline,1.0,4r-methylproline,0.9991,4r-hydroxyproline,0.9907
+ctg1_4534_AMP-binding.3,leucine,1.0,,,,
