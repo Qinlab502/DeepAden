@@ -1,26 +1,24 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-import argparse
 import os
+import torch
 import pickle
-from typing import Dict, List, Tuple, Optional, Union
-
 import numpy as np
 import pandas as pd
-import torch
+import argparse
+from typing import Dict, List, Tuple, Optional, Union
 from transformers import EsmTokenizer, EsmModel
 from transformers import logging as transformers_logging
 transformers_logging.set_verbosity_error()
+
+# Import from model.py
+from deepAden_model import load_contact
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ============================
 # Utility Functions
 # ============================
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-def read_fasta_to_dataframe(fasta_file: str) -> pd.DataFrame:
+def read_fasta_to_dataframe(fasta: str) -> pd.DataFrame:
     """
     Read a multi-sequence FASTA file and convert it to a DataFrame.
 
@@ -34,7 +32,7 @@ def read_fasta_to_dataframe(fasta_file: str) -> pd.DataFrame:
     current_id = None
     current_sequence = ''
 
-    with open(fasta_file, 'r') as f:
+    with open(fasta, 'r') as f:
         for line in f:
             line = line.strip()
             if line.startswith('>'):
@@ -161,7 +159,6 @@ def calculate_features(sequences_dict: Dict[str, str], pf_dir: str, emb_dir: str
 
     esm_model.eval()
 
-#     print("Processing sequences...")
     for seq_id, sequence in sequences_dict.items():
         # Calculate physicochemical features
         physio_features, res_id_list = get_seq_features(sequence, residue_features)
@@ -186,7 +183,53 @@ def calculate_features(sequences_dict: Dict[str, str], pf_dir: str, emb_dir: str
         with open(esm_pickle_path, 'wb') as f:
             pickle.dump(esm_embeddings, f)
 
-#     print(f"Processed {len(sequences_dict)} sequences successfully.")
+
+def adj_to_edge_index(adj):
+    """
+    Convert adjacency matrix to edge index format.
+
+    Args:
+        adj: Adjacency matrix.
+
+    Returns:
+        Edge index tensor.
+    """
+    src, dst = np.nonzero(adj)
+    return torch.stack([torch.tensor(src, dtype=torch.long), torch.tensor(dst, dtype=torch.long)], dim=0)
+
+
+def Create_Contacts_EdgeIndex(seq_df, ei_dir, base_model, tokenizer, contact_model_path, device):
+    """
+    Create contact maps and save them as edge indices.
+
+    Args:
+        seq_df: DataFrame containing sequence IDs and sequences.
+        ei_dir: Directory to save edge index files.
+        base_model: Base model for feature extraction.
+        tokenizer: Tokenizer for the base model.
+        contact_model_path: Path to contact prediction model weights.
+        device: Device to run the model on.
+    """
+    if not os.path.exists(ei_dir):
+        os.makedirs(ei_dir)
+    
+    for i, s in zip(seq_df.id, seq_df.sequence):
+        # Predict contacts using the load_contact function
+        contacts = load_contact(
+            base_model=base_model,
+            model_path=contact_model_path,
+            sequence=s,
+            tokenizer=tokenizer,
+            device=device
+        )
+        
+        # Convert to edge index format
+        edge_index = adj_to_edge_index(contacts)
+
+        # Save edge index
+        edge_index_path = os.path.join(ei_dir, f"{i}_ei.pkl")
+        with open(edge_index_path, 'wb') as f:
+            pickle.dump(edge_index.numpy(), f)
 
 
 # ============================
@@ -194,49 +237,48 @@ def calculate_features(sequences_dict: Dict[str, str], pf_dir: str, emb_dir: str
 # ============================
 
 def main():
-    parser = argparse.ArgumentParser(description="Process sequences from a FASTA file and compute physiochemical features and ESM2 embeddings.")
-    parser.add_argument("--fasta_file", type=str, required=True, help="Path to the input multi-sequence FASTA file.")
-    parser.add_argument("--output_dir", type=str, required=True, help="Directory to save all output files in subdirectories: pf_dir, emb_dir.")
+    parser = argparse.ArgumentParser(description="Process sequences from a FASTA file and compute features.")
+    parser.add_argument("--fasta", type=str, required=True, help="Path to the input multi-sequence FASTA file.")
+    parser.add_argument("--feature_dir", type=str, required=True, help="Directory to save all output files in subdirectories.")
     parser.add_argument("--plm", type=str, required=True, help="Path or model name to protein language model weights (ESM2).")
+    parser.add_argument("--cm", type=str, required=True, help="Path to contact prediction model weights.")
 
     args = parser.parse_args()
 
-    fasta_file = args.fasta_file
-    output_dir = args.output_dir
+    fasta = args.fasta
+    feature_dir = args.feature_dir
     plm_path = args.plm
+    contact_model = args.cm
 
     # Check if input file exists
-    if not os.path.isfile(fasta_file):
-        raise FileNotFoundError(f"FASTA file not found: {fasta_file}")
+    if not os.path.isfile(fasta):
+        raise FileNotFoundError(f"FASTA file not found: {fasta}")
 
     # Define subdirectory paths
-    pf_dir = os.path.join(output_dir, "pf_dir")
-    emb_dir = os.path.join(output_dir, "emb_dir")
+    pf_dir = os.path.join(feature_dir, "pf_dir")
+    emb_dir = os.path.join(feature_dir, "emb_dir")
+    ei_dir = os.path.join(feature_dir, "ei_dir")
 
     # Create all subdirectories if they don't exist
-    sub_dirs = [pf_dir, emb_dir]
+    sub_dirs = [pf_dir, emb_dir, ei_dir]
     for directory in sub_dirs:
         os.makedirs(directory, exist_ok=True)
-#         print(f"Output directory: {directory}")
 
     # Step 1: Read FASTA file
-#     print("Reading FASTA file...")
-    seq_df = read_fasta_to_dataframe(fasta_file)
+    seq_df = read_fasta_to_dataframe(fasta)
     sequences_dict = dict(zip(seq_df['id'], seq_df['sequence']))
-#     print(f"Found {len(sequences_dict)} sequences in the input file.")
 
     # Step 2: Initialize ESM2 model
-#     print("Initializing ESM2 model...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    tokenizer_esm = EsmTokenizer.from_pretrained(plm_path)
+    tokenizer = EsmTokenizer.from_pretrained(plm_path)
     model_esm = EsmModel.from_pretrained(plm_path).to(device)
     model_esm.eval()
+    
+    # Step 3: Create contact maps and edge indices
+    Create_Contacts_EdgeIndex(seq_df, ei_dir, model_esm, tokenizer, contact_model, device)
 
-    # Step 3: Calculate features
-    calculate_features(sequences_dict, pf_dir, emb_dir, model_esm, tokenizer_esm, device)
-
-#     print("Processing completed successfully.")
-
-
+    # Step 4: Calculate features (physicochemical and embeddings)
+    calculate_features(sequences_dict, pf_dir, emb_dir, model_esm, tokenizer, device)
+    
 if __name__ == "__main__":
     main()

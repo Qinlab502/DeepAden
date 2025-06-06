@@ -9,7 +9,7 @@ def ensure_dirs(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def precompute_molecule_features(csv_file, output_dir='data/molecule_data', device="cuda", batch_size=128):
+def precompute_molecule_features(csv_file, device, output_dir='data/molecule_data', batch_size=128):
     ensure_dirs(output_dir)
     
     print("Loading MoLFormer model...")

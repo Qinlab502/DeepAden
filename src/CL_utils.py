@@ -66,7 +66,7 @@ def evaluate_model(model, test_loader, device="cuda"):
             all_similarities.extend(similarity)
             all_labels.extend(labels)
     
-    all_probabilities = np.array(all_probabilities)
+    all_probabilities = np.array(all_similarities)
     all_labels = np.array(all_labels)
     
     # Calculate metrics
@@ -91,10 +91,9 @@ def load_gmm_models(gmm_dir):
                 model_data = pickle.load(f)
                 gmm_models.append(model_data['gmm_model'])
     
-#     print(f"Loaded {len(gmm_models)} GMM models")
     return gmm_models
 
-def perform_retrieval(model, protein_ids, molecule_labels=None, 
+def perform_retrieval(model, ids, molecule_labels=None, 
                      protein_feature_dir="results/protein_data", 
                      molecule_feature_dir="data/molecule_data", 
                      gmm_dir=None, top_k=10, device="cuda", batch_size=64,
@@ -115,7 +114,7 @@ def perform_retrieval(model, protein_ids, molecule_labels=None,
         gmm_models = load_gmm_models(gmm_dir)
     
     # Load protein features
-    protein_features = load_protein_features(protein_ids, protein_feature_dir)
+    protein_features = load_protein_features(ids, protein_feature_dir)
     protein_features = protein_features.to(device)
     
     # Get all molecule labels if not provided
@@ -128,8 +127,6 @@ def perform_retrieval(model, protein_ids, molecule_labels=None,
     num_molecules = len(molecule_labels)
     num_batches = (num_molecules + batch_size - 1) // batch_size
     all_similarities = []
-    
-#     print(f"Processing {num_molecules} molecules in {num_batches} batches...")
     
     # Get protein projections
     with torch.no_grad():
@@ -160,7 +157,7 @@ def perform_retrieval(model, protein_ids, molecule_labels=None,
     
     # For each protein, process molecules
     results = []
-    for i, protein_id in enumerate(protein_ids):
+    for i, id in enumerate(ids):
         sim_scores = similarity[i]
         sorted_indices = np.argsort(-sim_scores)
         sorted_scores = sim_scores[sorted_indices]
@@ -182,7 +179,7 @@ def perform_retrieval(model, protein_ids, molecule_labels=None,
             confidence_scores = [infer_confidence_gmm(score, gmm_models) for score in selected_scores]
         
         result = {
-            'protein_id': protein_id,
+            'id': id,
             'molecules': selected_molecules,
             'similarity_scores': selected_scores,
             'confidence_scores': confidence_scores if gmm_models else None,
@@ -196,7 +193,7 @@ def perform_retrieval(model, protein_ids, molecule_labels=None,
 def save_results(results, output_file="retrieval_results.csv", max_molecules=10):
     """
     Save retrieval results with each protein in one row
-    Only includes protein_id, molecules, and confidence scores (if available)
+    Only includes id, molecules, and confidence scores (if available)
     """
     import pandas as pd
     import os
@@ -204,11 +201,11 @@ def save_results(results, output_file="retrieval_results.csv", max_molecules=10)
     rows = []
     
     for result in results:
-        protein_id = result['protein_id']
+        id = result['id']
         molecules = result['molecules']
         conf_scores = result['confidence_scores']
         
-        row = {'protein_id': protein_id}
+        row = {'id': id}
         n_molecules = min(len(molecules), max_molecules)
         
         for i in range(n_molecules):
@@ -225,7 +222,3 @@ def save_results(results, output_file="retrieval_results.csv", max_molecules=10)
         df.to_excel(output_file, index=False)
     else:
         df.to_csv(output_file, index=False)
-    
-#     print(f"Results saved to {output_file}")
-
-    

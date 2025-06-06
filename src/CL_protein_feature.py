@@ -58,7 +58,7 @@ def precompute_protein_features(csv_file, output_dir='results/protein_data',
     esm_model.to(device)
     
 #     print("Loading LayerNormNet model...")
-    layernorm_checkpoint = "model/data_dup_supconH_0331.pth"
+    layernorm_checkpoint = "model/dup_supconH_03312025.pth"
     layernorm_model = LayerNormNet.load_from_checkpoint(
         layernorm_checkpoint, 
         hidden_dim, 
@@ -70,7 +70,7 @@ def precompute_protein_features(csv_file, output_dir='results/protein_data',
 #     print(f"Reading CSV file: {csv_file}")
     df = pd.read_csv(csv_file)
     ids = df['id'].tolist()
-    seqs = df['pocket'].tolist()
+    seqs = df['binding_pocket'].tolist()
     
 #     print(f"Found {len(ids)} sequences.")
     
