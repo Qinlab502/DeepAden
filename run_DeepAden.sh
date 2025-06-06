@@ -9,11 +9,11 @@ NC='\033[0m'
 FASTA_FILE=""
 OUTPUT_DIR="${SCRIPT_DIR}/results"
 PLM="${SCRIPT_DIR}/model/esm2_t33_650M_UR50D"
-CM="${SCRIPT_DIR}/model/contact_prediction_sigmoid_1024_0.65_1553.pth"
-REFERENCE="${SCRIPT_DIR}/data/reference.csv"
+CM="${SCRIPT_DIR}/model/ABP_CM_08232024.pth"
+REFERENCE="${SCRIPT_DIR}/data/template_correction.csv"
 PROCESS=12
 PYTHON_SCRIPTS_DIR="${SCRIPT_DIR}/src"
-
+GAT="${SCRIPT_DIR}/model/ABP_GAT_10292024.pth"
 MAX_SEP=true
 TOP_K=10
 
@@ -61,12 +61,10 @@ if [ "$MAX_SEP" = true ] && [ "$TOP_K" != 10 ]; then
     usage
 fi
 
-python "${PYTHON_SCRIPTS_DIR}/GAT_node_feature.py" --fasta_file "$FASTA_FILE" --output_dir "$OUTPUT_DIR" --plm "$PLM"
-python "${PYTHON_SCRIPTS_DIR}/GAT_edge_feature.py" --fasta_file "$FASTA_FILE" --output_dir "$OUTPUT_DIR" --cm "$CM" --plm "$PLM"
-python "${PYTHON_SCRIPTS_DIR}/GAT_seq_feature.py" --input_dir "$OUTPUT_DIR"
-python "${PYTHON_SCRIPTS_DIR}/GAT_prediction.py" --feature "$OUTPUT_DIR/" --fasta "$FASTA_FILE" --reference "$REFERENCE" --output "$OUTPUT_DIR/" --process "$PROCESS"
+python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_featurization.py" --fasta "$FASTA_FILE" --feature_dir "$OUTPUT_DIR" --plm "$PLM" --cm "$CM"
+python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_inference.py" --fasta "$FASTA_FILE" --feature_dir "$OUTPUT_DIR" --reference "$REFERENCE" --output "$OUTPUT_DIR/" --GAT "$GAT"
 
-BINDING_CMD=("python" "${PYTHON_SCRIPTS_DIR}/binding_prediction.py" "--input" "$OUTPUT_DIR/pocket_predictions.csv")
+BINDING_CMD=("python" "${PYTHON_SCRIPTS_DIR}/binding_prediction.py" "--input" "$OUTPUT_DIR/ABP_prediction.csv")
 
 if [ "$MAX_SEP" = true ]; then
     BINDING_CMD+=("--max_sep")
@@ -75,3 +73,17 @@ else
 fi
 
 "${BINDING_CMD[@]}"
+STATUS=$?
+
+if [ $STATUS -eq 0 ]; then
+    # Clean up intermediate folders only if the pipeline succeeded
+    for DIR in ei_dir emb_dir pf_dir protein_data pyg_dir; do
+        TARGET="${OUTPUT_DIR}/${DIR}"
+        if [ -d "$TARGET" ]; then
+            echo -e "${GREEN}Deleting $TARGET ...${NC}"
+            rm -rf "$TARGET"
+        fi
+    done
+else
+    echo -e "${RED}Pipeline failed, intermediate files are kept for debugging.${NC}"
+fi
