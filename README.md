@@ -4,9 +4,11 @@
 
 #
 
-**DeepAden** is an ensemble deep learning model designed to predict adenylation (A) domain substrate specificity. The framework first trains a graph attention network to identify the A-domain binding pocket surrounding the substrate, using fused sequence and structural features derived from a protein language model. It then employs cross-modal contrastive learning to jointly encode pocket-substrate interactions through protein and chemical language models, effectively addressing challenges such as substrate promiscuity and zero-shot prediction. DeepAden has been converted into an easy-to-use web server, available at [https://deepnp.site/](https://deepnp.site/).
+DeepAden has been converted into an easy-to-use web server, available at [https://deepnp.site/](https://deepnp.site/).
 
 ![Fig 1](figure/Fig1.png)
+
+**DeepAden** is an ensemble deep learning model designed to predict adenylation (A) domain substrate specificity. The framework first trains a graph attention network to identify the A-domain binding pocket surrounding the substrate, using fused sequence and structural features derived from a protein language model. It then employs cross-modal contrastive learning to jointly encode pocket-substrate interactions through protein and chemical language models, effectively addressing challenges such as substrate promiscuity and zero-shot prediction. 
 
 ## Overview
 
