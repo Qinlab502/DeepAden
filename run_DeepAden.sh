@@ -14,6 +14,7 @@ REFERENCE="${SCRIPT_DIR}/data/template_correction.csv"
 PROCESS=12
 PYTHON_SCRIPTS_DIR="${SCRIPT_DIR}/src"
 GAT="${SCRIPT_DIR}/model/ABP_GAT_10292024.pth"
+HMM_MODEL="${SCRIPT_DIR}/data/AMP-binding/PF00501.hmm"
 MAX_SEP=true
 TOP_K=10
 
@@ -61,8 +62,18 @@ if [ "$MAX_SEP" = true ] && [ "$TOP_K" != 10 ]; then
     usage
 fi
 
-python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_featurization.py" --fasta "$FASTA_FILE" --feature_dir "$OUTPUT_DIR" --plm "$PLM" --cm "$CM"
-python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_inference.py" --fasta "$FASTA_FILE" --feature_dir "$OUTPUT_DIR" --reference "$REFERENCE" --output "$OUTPUT_DIR/" --GAT "$GAT"
+mkdir -p "$OUTPUT_DIR"
+
+hmmscan --domtblout "${OUTPUT_DIR}/adomains.dom" "$HMM_MODEL" "$FASTA_FILE" > /dev/null
+python "${PYTHON_SCRIPTS_DIR}/extract_adomains.py" "${OUTPUT_DIR}/adomains.dom" "$FASTA_FILE" "${OUTPUT_DIR}/adomains.fasta"
+
+if [ ! -s "${OUTPUT_DIR}/adomains.fasta" ]; then
+    echo -e "${RED}Error: No AMP-binding domains detected in input sequences.${NC}"
+    exit 1
+fi
+
+python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_featurization.py" --fasta "${OUTPUT_DIR}/adomains.fasta" --feature_dir "$OUTPUT_DIR" --plm "$PLM" --cm "$CM"
+python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_inference.py" --fasta "${OUTPUT_DIR}/adomains.fasta" --feature_dir "$OUTPUT_DIR" --reference "$REFERENCE" --output "$OUTPUT_DIR/" --GAT "$GAT"
 
 BINDING_CMD=("python" "${PYTHON_SCRIPTS_DIR}/binding_prediction.py" "--input" "$OUTPUT_DIR/ABP_prediction.csv")
 
@@ -76,14 +87,21 @@ fi
 STATUS=$?
 
 if [ $STATUS -eq 0 ]; then
-    # Clean up intermediate folders only if the pipeline succeeded
+    # Clean up intermediate files only if the pipeline succeeded
     for DIR in ei_dir emb_dir pf_dir protein_data pyg_dir; do
         TARGET="${OUTPUT_DIR}/${DIR}"
         if [ -d "$TARGET" ]; then
-            echo -e "${GREEN}Deleting $TARGET ...${NC}"
             rm -rf "$TARGET"
         fi
     done
+
+    for FILE in adomain.dom adomains.fasta; do
+        TARGET="${OUTPUT_DIR}/${FILE}"
+        if [ -f "$TARGET" ]; then
+            rm -f "$TARGET"
+        fi
+    done
+
 else
     echo -e "${RED}Pipeline failed, intermediate files are kept for debugging.${NC}"
 fi
