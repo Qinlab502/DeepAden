@@ -105,7 +105,7 @@ Note: By default uses maximum separation method. Specify -k to use top-k instead
 The default parameters are optimized for common use cases. For standard analysis using max-separation algorithm, simply specifying the input file suffices. To obtain top-k predictions, additionally provide the `-k` parameter to define the number of results.
 
 ```
-./run_DeepAden.sh -f adomain.fasta [-k 5]
+./run_DeepAden.sh -f example/adomain.fasta [-k 5]
 ```
 
 ## Results
