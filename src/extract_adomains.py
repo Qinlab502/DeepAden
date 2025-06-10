@@ -58,7 +58,6 @@ def extract_domains(protein_file, domains_df, domain_name="AMP-binding"):
         
 
         seq_id = f"{query_id}|{domain_name}.{domain_count[query_id]}|{row['start']}-{row['end']}"
-        description = f"{row['start']}-{row['end']}"
         
         record = SeqRecord(
             Seq(str(domain_seq)),
