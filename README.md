@@ -60,16 +60,22 @@ conda activate DeepAden
 
 ## Data
 
-The `data` directory contains two essential files:
+The `data` directory contains three essential files:
 
 - `mol_db.csv`：A comprehensive database of known A-domain substrates curated from MIBiG databases and literatures.
 - `reference.csv`: A benchmark correction file for binding pocket prediction.
+- `AMP-binding/PF00501.hmm`: The raw HMM file for AMP-binding family.
 
 **Note**: After initial execution, DeepAden automatically generates a `molecule_data` subdirectory containing feature embedding vectors for all molecules in the database. If you wish to update the substrate database, you can upload the new `mol_db.csv` file and delete the existing `molecule_data` folder, then rerun DeepAden again.
 
 The `example` directory contains FASTA files of A-domain amino acid sequences to be predicted, serving as input files for the model.
 
 ## Usage
+Before using DeepAden for the first time, the HMM file needs to be decompressed in the `AMP-binding/` folder using the `hmmpress` command.
+
+```
+hmmpress data/AMP-binding/PF00501.hmm
+```
 
 The run_DeepAden.sh script is provided to execute the complete DeepAden prediction pipeline, supporting parameter configurations including input FASTA file path (-f), output directory (-o), selection algorithm (-k, max-sep or top-k), and number of threads (-n). Detailed usage can be viewed via ./run_DeepAden.sh -h
 
@@ -99,7 +105,7 @@ Note: By default uses maximum separation method. Specify -k to use top-k instead
 The default parameters are optimized for common use cases. For standard analysis using max-separation algorithm, simply specifying the input file suffices. To obtain top-k predictions, additionally provide the `-k` parameter to define the number of results.
 
 ```
-sh run_DeepAden.sh -f adomain.fasta [-k 5]
+./run_DeepAden.sh -f adomain.fasta [-k 5]
 ```
 
 ## Results
