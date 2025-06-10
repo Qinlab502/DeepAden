@@ -6,7 +6,6 @@ from Bio import SeqIO
 import pandas as pd
 
 def parse_hmmscan(hmmscan_file):
-    
     domains = []
     with open(hmmscan_file) as f:
         for line in f:
@@ -29,22 +28,11 @@ def parse_hmmscan(hmmscan_file):
     return pd.DataFrame(domains)
 
 def extract_domains(protein_file, domains_df, domain_name="AMP-binding"):
-
     records = SeqIO.to_dict(SeqIO.parse(protein_file, 'fasta'))
     domain_records = []
     
-
     if domains_df.empty:
-        print("Warning: No domains detected in the input file")
-
-        no_domain_seq = Seq("No A domains detected")
-        record = SeqRecord(
-            no_domain_seq,
-            id="No_A_domains",
-            description="No AMP-binding domains were detected in any input sequence"
-        )
-        domain_records.append(record)
-        return domain_records
+        return None
     
     domain_count = defaultdict(int)
     domains_df = domains_df.sort_values(['query_id', 'start'])
@@ -56,7 +44,6 @@ def extract_domains(protein_file, domains_df, domain_name="AMP-binding"):
         protein = records[query_id]
         domain_seq = protein.seq[row['start']-1:row['end']]
         
-
         seq_id = f"{query_id}|{domain_name}.{domain_count[query_id]}|{row['start']}-{row['end']}"
         
         record = SeqRecord(
@@ -79,14 +66,20 @@ def main():
     
     domains_df = parse_hmmscan(dom_file)
     
-    if not domains_df.empty and "AMP-binding" not in " ".join(domains_df['domain_id'].unique()):
-        print("Warning: No adenylation (A) domains detected")
-
-    else:
-        domain_records = extract_domains(protein_file, domains_df)
-        
+    # Filter for only AMP-binding domains
+    amp_domains_df = domains_df[domains_df['domain_id'].str.contains('AMP-binding')]
+    
+    if amp_domains_df.empty:
+        # print("Warning: No adenylation (A) domains detected")
+        sys.exit(0)
+    
+    domain_records = extract_domains(protein_file, amp_domains_df)
+    
+    if domain_records:
         with open(output_file, 'w') as f:
             SeqIO.write(domain_records, f, 'fasta')
+    else:
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()

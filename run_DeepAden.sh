@@ -68,7 +68,7 @@ hmmscan --domtblout "${OUTPUT_DIR}/adomains.dom" "$HMM_MODEL" "$FASTA_FILE" > /d
 python "${PYTHON_SCRIPTS_DIR}/extract_adomains.py" "${OUTPUT_DIR}/adomains.dom" "$FASTA_FILE" "${OUTPUT_DIR}/adomains.fasta"
 
 if [ ! -s "${OUTPUT_DIR}/adomains.fasta" ]; then
-    echo -e "${RED}Error: No AMP-binding domains detected in input sequences.${NC}"
+    echo -e "${RED}Warning: No adenylation (A) domains detected.${NC}"
     exit 1
 fi
 
