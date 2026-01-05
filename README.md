@@ -66,7 +66,7 @@ The `data` directory contains essential files for model execution and other supp
 - `template_correction.csv`: A benchmark correction file for binding pocket prediction.
 - `AMP-binding`, `nrps_domains`: The raw HMM file for AMP-binding family and NRPS domains.
 - `train_set.csv`：The train dataset used by Deepaden (after data augmentation).
-- `Streptomyces hygroscopicus OsiSh 2.fasta`, `BGC-4.24.gbk`, `BGC-4.8,gbk`: The genome file of *Streptomyces hygroscopicus* OsiSh-2, along with biosynthetic gene cluster files for nyuzenamides(BGC-4.24) and octaminomycins(BGC-4.8) described in the manuscript.
+- `Streptomyces hygroscopicus OsiSh 2.fasta`, `BGC-4.24.gbk`, `BGC-4.8,gbk`: The genome file of *Streptomyces hygroscopicus* OsiSh-2, along with biosynthetic gene cluster files for nyuzenamides (BGC-4.24) and octaminomycins (BGC-4.8) described in the manuscript.
 
 **Note**: After initial execution, DeepAden automatically generates a `molecule_data` subdirectory containing feature embedding vectors for all molecules in the database. If you wish to update the substrate database, you can upload the new `mol_db.csv` file and delete the existing `molecule_data` folder, then rerun DeepAden again.
 
