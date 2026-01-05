@@ -1,4 +1,8 @@
+# =============================================================================
 # molecule_feature.py
+# Description: Precompute and load molecule features using MoLFormer model.
+# =============================================================================
+
 import os
 import torch
 import pandas as pd
@@ -9,7 +13,7 @@ def ensure_dirs(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def precompute_molecule_features(csv_file, device, output_dir='data/molecule_data', batch_size=128):
+def precompute_molecule_features(csv_file, output_dir='data/molecule_data', device="cuda", batch_size=128):
     ensure_dirs(output_dir)
     
     print("Loading MoLFormer model...")
@@ -22,11 +26,11 @@ def precompute_molecule_features(csv_file, device, output_dir='data/molecule_dat
     print(f"Reading CSV file: {csv_file}")
     df = pd.read_csv(csv_file)
     
-    if 'SMILES' not in df.columns or 'labels' not in df.columns:
-        raise ValueError("CSV file must contain both 'SMILES' and 'labels' columns")
+    if 'smiles' not in df.columns or 'label' not in df.columns:
+        raise ValueError("CSV file must contain both 'smiles' and 'label' columns")
     
-    label_smiles_pairs = df[['labels', 'SMILES']].drop_duplicates().values.tolist()
-    print(f"Found {len(df)} entries and {len(label_smiles_pairs)} unique label-SMILES pairs")
+    label_smiles_pairs = df[['label', 'smiles']].drop_duplicates().values.tolist()
+    print(f"Found {len(df)} entries and {len(label_smiles_pairs)} unique label-smiles pairs")
     
     with tqdm(total=len(label_smiles_pairs), desc="Processing Molecules", unit="mol") as pbar:
         for start_idx in range(0, len(label_smiles_pairs), batch_size):
@@ -62,7 +66,7 @@ def precompute_molecule_features(csv_file, device, output_dir='data/molecule_dat
                         torch.save(mol_embedding.cpu(), out_file)
                         
                     except Exception as e2:
-                        print(f"Error processing individual molecule: {label}, SMILES: {smiles}, Error: {e2}")
+                        print(f"Error processing individual molecule: {label}, smiles: {smiles}, Error: {e2}")
                         with open(os.path.join(output_dir, "failed_molecules.txt"), "a") as f:
                             f.write(f"{label}\t{smiles}\n")
             
@@ -70,7 +74,7 @@ def precompute_molecule_features(csv_file, device, output_dir='data/molecule_dat
     
     print(f"All molecule features have been processed and saved to {output_dir}")
 
-def load_molecule_features(labels_list, feature_dir="data/molecule_data"):
+def load_molecule_features(labels_list, feature_dir="../data/molecule_data"):
     features = []
     missing_labels = []
     
@@ -100,6 +104,6 @@ def load_molecule_features(labels_list, feature_dir="data/molecule_data"):
 
 if __name__ == "__main__":
     precompute_molecule_features(
-        csv_file="./data/train_set.csv",
-        output_dir="./data/molecule_data"
+        csv_file="train_data_to50_augmented_v2.csv",
+        output_dir="./molecule_data"
     )

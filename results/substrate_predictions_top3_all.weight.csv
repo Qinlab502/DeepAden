@@ -1,0 +1,4 @@
+id,Top1,Top1_score,Top2,Top2_score,Top3,Top3_score
+ctg1_4534_AMP-binding.1|1-349,phenylalanine,0.99,4-(dimethylamino)phenylalanine,0.05,phenylglycine,0.02
+ctg1_4534_AMP-binding.2|1-359,proline,1.0,4-methylproline,0.15,pipecolic acid,0.02
+ctg1_4534_AMP-binding.3|3-339,leucine,1.0,isoleucine,0.16,homoleucine,0.01

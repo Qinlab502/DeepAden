@@ -1,120 +1,121 @@
+# =============================================================================
 # utils.py
+# Description: Utility functions for loading models, evaluation, and retrieval.
+# =============================================================================
+
 import os
 import torch
 import torch.nn.functional as F
 import numpy as np
+import pandas as pd
+import pickle
 from tqdm import tqdm
 from CL_protein_feature import load_protein_features
 from CL_molecule_feature import load_molecule_features
+from kde_t import KDECalibrator
 
-def maximum_separation(dist_lst, first_grad=True, use_max_grad=True):
-    """Find the optimal separation point in a sorted list of similarity values"""
-    opt = 0 if first_grad else -1
-    gamma = np.append(dist_lst[1:], np.repeat(dist_lst[-1], 10))
-    sep_lst = np.abs(dist_lst - np.mean(gamma))
-    sep_grad = np.abs(sep_lst[:-1] - sep_lst[1:])
+# -----------------------------------------------------------------------------
+# Model Loading
+# -----------------------------------------------------------------------------
+def load_kde_model(kde_path):
+    """
+    Load the KDE Calibrator model from a pickle file.
+    """
+    if not os.path.exists(kde_path):
+        raise FileNotFoundError(f"KDE model not found at {kde_path}")
     
-    if use_max_grad:
-        # Use the point with maximum gradient
-        max_sep_i = np.argmax(sep_grad)
-    else:
-        # Use first or last large gradient
-        large_grads = np.where(sep_grad > np.mean(sep_grad))
-        max_sep_i = large_grads[-1][opt]
-    
-    # Default to index 2 if no suitable separation point found
-    if max_sep_i >= 3:
-        max_sep_i = 2
-    
-    return max_sep_i
+    print(f"[Utils] Loading KDE model from {kde_path}...")
+    with open(kde_path, 'rb') as f:
+        calibrator = pickle.load(f)
+    return calibrator
 
-def infer_confidence_gmm(distance, gmm_lst):
-    """Calculate confidence score for a prediction using ensemble of GMM models"""
-    confidence = []
-    for j in range(len(gmm_lst)):
-        main_GMM = gmm_lst[j]
-        a, b = main_GMM.means_
-        # Identify which component corresponds to the positive class
-        true_model_index = 1 if a[0] < b[0] else 0
-        certainty = main_GMM.predict_proba([[distance]])[0][true_model_index]
-        confidence.append(certainty)
-    # Return average confidence across all GMM models
-    return np.mean(confidence)
-
-def evaluate_model(model, test_loader, device="cuda"):
-    """Evaluate model performance on test data and return metrics"""
+# -----------------------------------------------------------------------------
+# Evaluation
+# -----------------------------------------------------------------------------
+def evaluate_model(model, test_loader, mol_feature_dir, device="cuda"):
+    """
+    Evaluate model retrieval accuracy using molecule names as labels.
+    Each protein embedding is compared against all molecule embeddings.
+    """
     model.eval()
-    all_similarities = []
-    all_labels = []
-    
+    device = torch.device(device)
+
+    # --- 1. Build molecule embedding bank ---
+    all_mol_embeds = []
+    all_mol_names = []
+
+    mol_files = sorted([f for f in os.listdir(mol_feature_dir) if f.endswith(".pt")])
+
+    with torch.no_grad():
+        for f in mol_files:
+            f_path = os.path.join(mol_feature_dir, f)
+            # weights_only=True for safety, assuming standard tensors
+            mol_feat = torch.load(f_path, map_location=device, weights_only=True)
+            if mol_feat.dim() == 1:
+                mol_feat = mol_feat.unsqueeze(0)
+
+            mol_proj = model.molecule_projection(mol_feat)
+            mol_proj = F.normalize(mol_proj, p=2, dim=1)
+            all_mol_embeds.append(mol_proj.cpu())
+
+            mol_name = os.path.splitext(f)[0]
+            all_mol_names.append(mol_name)
+
+    all_mol_embeds = torch.cat(all_mol_embeds, dim=0)
+
+    # --- 2. Evaluate on test proteins ---
+    correct = 0
+    total = 0
+
     with torch.no_grad():
         for batch in tqdm(test_loader, desc="Evaluating"):
-            protein_features = batch['protein_feature'].to(device)
-            molecule_features = batch['molecule_feature'].to(device)
-            labels = batch['label'].cpu().numpy()
-            
-            # Get projections
-            protein_proj, molecule_proj = model(protein_features, molecule_features)
-            
-            # Normalize embeddings
-            protein_proj = F.normalize(protein_proj, p=2, dim=1)
-            molecule_proj = F.normalize(molecule_proj, p=2, dim=1)
-            
-            # Calculate cosine similarity
-            similarity = torch.sum(protein_proj * molecule_proj, dim=1).cpu().numpy()
-            
-            all_similarities.extend(similarity)
-            all_labels.extend(labels)
-    
-    all_probabilities = np.array(all_similarities)
-    all_labels = np.array(all_labels)
-    
-    # Calculate metrics
-    from sklearn.metrics import roc_auc_score, average_precision_score
-    auroc = roc_auc_score(all_labels, all_similarities)
-    auprc = average_precision_score(all_labels, all_similarities)
-    
-    print(f"AUROC: {auroc:.4f}")
-    print(f"AUPRC: {auprc:.4f}")
-    
-    return {'auroc': auroc, 'auprc': auprc, 'similarities': all_similarities, 'labels': all_labels}
+            p_feat = batch["protein_feature"].to(device)
+            p_proj = model.protein_projection(p_feat)
+            p_proj = F.normalize(p_proj, p=2, dim=1)
 
-def load_gmm_models(gmm_dir):
-    """Load GMM models from pickle files in the specified directory"""
-    import pickle
-    
-    gmm_models = []
-    for filename in os.listdir(gmm_dir):
-        if filename.endswith(".pkl") and filename.startswith("GMM_model_exp_"):
-            filepath = os.path.join(gmm_dir, filename)
-            with open(filepath, 'rb') as f:
-                model_data = pickle.load(f)
-                gmm_models.append(model_data['gmm_model'])
-    
-    return gmm_models
+            true_names = batch["label"]
 
-def perform_retrieval(model, ids, molecule_labels=None, 
-                     protein_feature_dir="results/protein_data", 
+            sim_matrix = torch.mm(p_proj.cpu(), all_mol_embeds.t())
+            top_idx = torch.argmax(sim_matrix, dim=1).tolist()
+            pred_names = [all_mol_names[i] for i in top_idx]
+
+            batch_correct = sum(p == t for p, t in zip(pred_names, true_names))
+            correct += batch_correct
+            total += len(true_names)
+
+    acc = correct / total if total > 0 else 0.0
+
+    return {
+        "accuracy": acc,
+        "correct": correct,
+        "total": total,
+    }
+
+# -----------------------------------------------------------------------------
+# Retrieval
+# -----------------------------------------------------------------------------
+def perform_retrieval(model, protein_ids, molecule_labels=None, 
+                     protein_feature_dir="example/output/protein_data", 
                      molecule_feature_dir="data/molecule_data", 
-                     gmm_dir=None, top_k=10, device="cuda", batch_size=64,
-                     use_max_sep=True):
+                     kde_path='model/kde_model/kde_calibrator.pkl', top_k=3, device="cuda", batch_size=64):
     """
-    Retrieve molecules for each protein with two modes:
-    1. With max_sep (use_max_sep=True): Use maximum_separation to find significant point
-    2. Without max_sep (use_max_sep=False): Return top-k molecules
+    Retrieve molecules for each protein.
     
-    Both modes use GMM to return confidence scores if gmm_dir is provided
+    Args:
+        kde_path: Path to the pickled KDECalibrator. MUST be provided.
+        top_k: Number of top molecules to return.
     """
+    if kde_path is None:
+        raise ValueError("kde_path must be provided to perform calibrated retrieval.")
+
     model.to(device)
     model.eval()
     
-    # Load GMM models if provided
-    gmm_models = None
-    if gmm_dir is not None:
-        gmm_models = load_gmm_models(gmm_dir)
+    # Load KDE model (Mandatory)
+    calibrator = load_kde_model(kde_path)
     
     # Load protein features
-    protein_features = load_protein_features(ids, protein_feature_dir)
+    protein_features = load_protein_features(protein_ids, protein_feature_dir)
     protein_features = protein_features.to(device)
     
     # Get all molecule labels if not provided
@@ -127,6 +128,8 @@ def perform_retrieval(model, ids, molecule_labels=None,
     num_molecules = len(molecule_labels)
     num_batches = (num_molecules + batch_size - 1) // batch_size
     all_similarities = []
+    
+    print(f"Processing {num_molecules} molecules in {num_batches} batches...")
     
     # Get protein projections
     with torch.no_grad():
@@ -157,61 +160,53 @@ def perform_retrieval(model, ids, molecule_labels=None,
     
     # For each protein, process molecules
     results = []
-    for i, id in enumerate(ids):
+    for i, protein_id in enumerate(protein_ids):
         sim_scores = similarity[i]
+        
+        # Sort by similarity descending (High Cosine Similarity -> High Probability)
         sorted_indices = np.argsort(-sim_scores)
-        sorted_scores = sim_scores[sorted_indices]
         
-        if use_max_sep:
-            # Mode 1: Use maximum_separation to find significant point
-            max_sep_idx = maximum_separation(sorted_scores, first_grad=True, use_max_grad=True)
-            selected_indices = sorted_indices[:max_sep_idx+1]
-        else:
-            # Mode 2: Use top-k molecules
-            selected_indices = sorted_indices[:top_k]
+        # Select Top-K
+        top_indices = sorted_indices[:top_k]
+        top_molecules = [molecule_labels[int(idx)] for idx in top_indices]
+        top_sim_scores = [sim_scores[int(idx)] for idx in top_indices]
         
-        selected_molecules = [molecule_labels[idx] for idx in selected_indices]
-        selected_scores = [sim_scores[idx] for idx in selected_indices]
+        # Calculate probabilities for the Top-K results using the calibrator
+        probs = calibrator.predict_proba(np.array(top_sim_scores))
         
-        # Calculate confidence scores if GMM is available
-        confidence_scores = []
-        if gmm_models is not None:
-            confidence_scores = [infer_confidence_gmm(score, gmm_models) for score in selected_scores]
-        
+        # 这里将 key 从 'protein_id' 改成统一的 'id'
         result = {
-            'id': id,
-            'molecules': selected_molecules,
-            'similarity_scores': selected_scores,
-            'confidence_scores': confidence_scores if gmm_models else None,
-            'method': 'max_sep' if use_max_sep else f'top_{top_k}'
+            'id': protein_id,
+            'molecules': top_molecules,
+            'probabilities': probs.tolist()
         }
         
         results.append(result)
     
     return results
 
-def save_results(results, output_file="retrieval_results.csv", max_molecules=10):
+def save_results(results, output_file="retrieval_results.csv"):
     """
-    Save retrieval results with each protein in one row
-    Only includes id, molecules, and confidence scores (if available)
+    Save retrieval results. 
+    It now dynamically saves however many molecules are in the results (determined by top_k).
     """
-    import pandas as pd
-    import os
-    
     rows = []
     
     for result in results:
-        id = result['id']
+        # 原来这里是 result['protein_id']，统一改为 'id'
+        protein_id = result['id']
         molecules = result['molecules']
-        conf_scores = result['confidence_scores']
+        scores = result['probabilities']
         
-        row = {'id': id}
-        n_molecules = min(len(molecules), max_molecules)
+        # 表头里的主键列也改成 id
+        row = {'id': protein_id}
+        
+        n_molecules = len(molecules)
         
         for i in range(n_molecules):
-            row[f'molecule_{i+1}'] = molecules[i]
-            if conf_scores:
-                row[f'confidence_score_{i+1}'] = round(conf_scores[i], 4)
+            rank = i + 1
+            row[f'Top{rank}'] = molecules[i]
+            row[f'Top{rank}_score'] = round(scores[i], 2)
         
         rows.append(row)
     
@@ -222,3 +217,5 @@ def save_results(results, output_file="retrieval_results.csv", max_molecules=10)
         df.to_excel(output_file, index=False)
     else:
         df.to_csv(output_file, index=False)
+    
+    print(f"Results saved to {output_file}")

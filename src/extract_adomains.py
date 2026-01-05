@@ -29,10 +29,13 @@ def parse_hmmscan(hmmscan_file):
 
 def extract_domains(protein_file, domains_df, domain_name="AMP-binding"):
     records = SeqIO.to_dict(SeqIO.parse(protein_file, 'fasta'))
+
     domain_records = []
     
     if domains_df.empty:
         return None
+        
+    total_domain_count = domains_df['query_id'].value_counts().to_dict()
     
     domain_count = defaultdict(int)
     domains_df = domains_df.sort_values(['query_id', 'start'])
@@ -44,7 +47,12 @@ def extract_domains(protein_file, domains_df, domain_name="AMP-binding"):
         protein = records[query_id]
         domain_seq = protein.seq[row['start']-1:row['end']]
         
-        seq_id = f"{query_id}|{domain_name}.{domain_count[query_id]}|{row['start']}-{row['end']}"
+        if total_domain_count[query_id] == 1:
+            seq_id = f"{query_id}|{row['start']}-{row['end']}"
+        else:
+            seq_id = f"{query_id}|{domain_name}.{domain_count[query_id]}|{row['start']}-{row['end']}"
+        
+        #seq_id = f"{query_id}|{domain_name}.{domain_count[query_id]}|{row['start']}-{row['end']}"
         
         record = SeqRecord(
             Seq(str(domain_seq)),

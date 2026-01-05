@@ -1,147 +1,224 @@
-labels,SMILES
-threonine,CC(O)C(N)C(=O)O
-tyrosine,NC(Cc1ccc(O)cc1)C(=O)O
+label,smiles
 proline,O=C(O)C1CCCN1
-serine,NC(CO)C(=O)O
-3-hydroxyvaline,CC(C)(O)C(N)C(=O)O
+para-aminobenzoic acid,Nc1ccc(C(=O)O)cc1
+homoserine,NC(CCO)C(=O)O
+R-aza-beta-tyrosine,NC(CC(=O)O)c1ccc(O)cn1
+tyrosine,NC(Cc1ccc(O)cc1)C(=O)O
+para-hydroxyphenylglycine,NC(C(=O)O)c1ccc(O)cc1
 alanine,CC(N)C(=O)O
-aspartic-acid,NC(CC(=O)O)C(=O)O
-3s-methylaspartic-acid,CC(C(=O)O)C(N)C(=O)O
-glycine,NCC(=O)O
-phenylalanine,NC(Cc1ccccc1)C(=O)O
-o-methyltyrosine,COc1ccc(CC(N)C(=O)O)cc1
-4r-hydroxyproline,O=C(O)C1CC(O)CN1
+3-amino-4-hydroxybenzoic acid,Nc1cc(C(=O)O)ccc1O
+aspartic acid,NC(CC(=O)O)C(=O)O
 cysteine,NC(CS)C(=O)O
-3-chlorotyrosine,NC(Cc1ccc(O)c(Cl)c1)C(=O)O
-asparagine,NC(=O)CC(N)C(=O)O
-valine,CC(C)C(N)C(=O)O
-ornithine,NCCCC(N)C(=O)O
-leucine,CC(C)CC(N)C(=O)O
-beta-alanine,NCCC(=O)O
-4-hydroxyphenylglycine,NC(C(=O)O)c1ccc(O)cc1
-isoleucine,CCC(C)C(N)C(=O)O
-glutamine,NC(=O)CCC(N)C(=O)O
-3-nitrotyrosine,NC(Cc1ccc(O)c([N+](=O)[O-])c1)C(=O)O
-r-beta-hydroxyphenylalanine,NC(C(=O)O)C(O)Cc1ccccc1
 "3,5-dihydroxyphenylglycine",NC(C(=O)O)c1cc(O)cc(O)c1
-"2,4-diaminobutyric-acid",NCCC(N)C(=O)O
-glutamic-acid,NC(CCC(=O)O)C(=O)O
-"4,5-dehydroleucine",C=C(C)CC(N)C(=O)O
-4r-methylproline,CC1CNC(C(=O)O)C1
-3r-methyl-beta-alanine,CC(CCN)C(=O)O
-r-beta-hydroxytyrosine,NC(C(=O)O)C(O)Cc1ccc(O)cc1
-3-hydroxyasparagine,NC(=O)C(O)C(N)C(=O)O
-3-hydroxyaspartic-acid,NC(C(=O)O)C(O)C(=O)O
-3-methoxyaspartic-acid,COC(C(=O)O)C(N)C(=O)O
-n5-formyl-n5-hydroxyornithine,NC(CCCN(O)C=O)C(=O)O
-n5-hydroxyornithine,NC(CCCNO)C(=O)O
 tryptophan,NC(Cc1c[nH]c2ccccc12)C(=O)O
-"3,5-dichloro-4-hydroxyphenylglycine",O=C(O)CNc1cc(Cl)c(O)c(Cl)c1
-n5-acetyl-n5-hydroxyornithine,CC(=O)N(O)CCCC(N)C(=O)O
-"2,3-dihydroxybenzoic-acid",O=C(O)c1cccc(O)c1O
-3s-hydroxy-6-chlorohistidine,NC(C(=O)O)C(O)Cn1cnc(Cl)c1
+glutamic acid,NC(CCC(=O)O)C(=O)O
+threonine,CC(O)C(N)C(=O)O
+glycine,NCC(=O)O
+lysine,NCCCCC(N)C(=O)O
+asparagine,NC(=O)CC(N)C(=O)O
+phenylalanine,NC(Cc1ccccc1)C(=O)O
+valine,CC(C)C(N)C(=O)O
+leucine,CC(C)CC(N)C(=O)O
+2-carboxy-6-hydroxyoctahydroindole,O=C(O)C1CC2CCC(O)CC2N1
+isoleucine,CCC(C)C(N)C(=O)O
+serine,NC(CO)C(=O)O
+arginine,NC(N)=NCCCC(N)C(=O)O
+homotyrosine,NC(CCc1ccc(O)cc1)C(=O)O
+"2,3-dihydroxybenzoic acid",O=C(O)c1cccc(O)c1O
+ornithine,NCCCC(N)C(=O)O
 histidine,NC(Cc1cnc[nH]1)C(=O)O
-4s-propenylproline,CC=CC1CNC(C(=O)O)C1
-beta-lysine,NCCCC(N)CC(=O)O
-dehydrovaline,CC(C)=C(N)C(=O)O
-"3r-hydroxy-2,4-diaminobutyric-acid",NCC(O)C(N)C(=O)O
-"2,3-diaminopropionic-acid",NCC(N)C(=O)O
-beta-homoleucine,CC(C)CC(N)CC(=O)O
 beta-hydroxytyrosine,NC(C(=O)O)C(O)c1ccc(O)cc1
+coumaric acid,O=C(O)C=Cc1ccc(O)cc1
+capreomycidine,NC1=NCCC(C(N)C(=O)O)N1
+aminoadipic acid,NC(CCCC(=O)O)C(=O)O
+glutamine,NC(=O)CCC(N)C(=O)O
+N5-formyl-N5-hydroxyornithine,NC(CCCN(O)C=O)C(=O)O
+N5-hydroxyornithine,NC(CCCNO)C(=O)O
+guanidinoacetic acid,NC(N)=NCC(=O)O
+3-amino-6-hydroxy-2-piperidone,NC1CCC(O)NC1=O
+"2-amino-3,5-dimethyl-4-hexenoic Acid",CC(C)=CC(C)C(N)C(=O)O
+4R-E-butenyl-4R-methylthreonine,CC=CCC(C)C(O)C(N)C(=O)O
+2-aminobutyric acid,CCC(N)C(=O)O
+3R-methylglutamic acid,CC(CC(=O)O)C(N)C(=O)O
+kynurenine,Nc1ccccc1C(=O)CC(N)C(=O)O
+quinoxaline-2-carboxylic acid,O=C(O)c1cnc2ccccc2n1
+citrulline,NC(=O)NCCCC(N)C(=O)O
+enduracididine,NC1=NCC(CC(N)C(=O)O)N1
+2-hydroxyisovaleric acid,CC(C)C(O)C(=O)O
+N5-acetyl-N5-hydroxyornithine,CC(=O)N(O)CCCC(N)C(=O)O
+3-hydroxy-O-methyl-5-methyltyrosine,COc1c(C)cc(CC(N)C(=O)O)cc1O
+pipecolic acid,O=C(O)C1CCCCN1
+"2,3-diaminobutyric acid",CC(N)C(N)C(=O)O
+3S-methylaspartic acid,CC(C(=O)O)C(N)C(=O)O
+"2,4-diaminobutyric acid",NCCC(N)C(=O)O
+alaninol,CC(N)CO
+3-(2-nitrocyclopropylalanine),NC(CC1CC1[N+](=O)[O-])C(=O)O
+beta-methylphenylalanine,CC(c1ccccc1)C(N)C(=O)O
+4S-propenylproline,CC=CC1CNC(C(=O)O)C1
+6-chlorotryptophan,NC(Cc1c[nH]c2cc(Cl)ccc12)C(=O)O
+6-chloro-4-hydroxyindole-3-carboxylic acid,O=C(O)c1c[nH]c2cc(Cl)cc(O)c12
+2-methylserine,CC(N)(CO)C(=O)O
+2-(1-methylcyclopropyl)-D-glycine,CC1(C(N)C(=O)O)CC1
+piperazic acid,O=C(O)C1CCCNN1
+"6,7-dichlorotryptophan",NC(Cc1c[nH]c2c(Cl)c(Cl)ccc12)C(=O)O
+"2,3-diaminopropionic acid",NCC(N)C(=O)O
+S-beta-hydroxyenduracididine,NC1=NCC(C(O)C(N)C(=O)O)N1
+3-hydroxyvaline,CC(C)(O)C(N)C(=O)O
+beta-lysine,NCCCC(N)CC(=O)O
+4-methylproline,CC1CNC(C(=O)O)C1
+3-methoxyanthranilic acid,COc1cccc(C(=O)O)c1N
+4R-propylproline,CCCC1CNC(C(=O)O)C1
+"4,5-dehydroarginine",N=C(N)NC=CCC(N)C(=O)O
+O-methyltyrosine,COc1ccc(CC(N)C(=O)O)cc1
+cysteic acid,NC(CS(=O)(=O)O)C(=O)O
+3-hydroxyaspartic acid,NC(C(=O)O)C(O)C(=O)O
+anthranilic acid,Nc1ccccc1C(=O)O
+3-hydroxypicolinic acid,O=C(O)c1ncccc1O
+4R-hydroxyproline,O=C(O)C1CC(O)CN1
+salicylic acid,O=C(O)c1ccccc1O
+beta-alanine,NCCC(=O)O
+meta-tyrosine,NC(Cc1cccc(O)c1)C(=O)O
+methionine,CSCCC(N)C(=O)O
+S-beta-hydroxycyclohex-2S-enylalanine,NC(C(=O)O)C(O)C1C=CCCC1
+3-aminoisobutyric acid,CC(CN)C(=O)O
+2-ketoisocaproic acid,CC(C)CC(=O)C(=O)O
+cinnamic acid,O=C(O)C=Cc1ccccc1
+N6-hydroxylysine,NC(CCCCNO)C(=O)O
+3R-hydroxyhomotyrosine,NC(C(=O)O)C(O)Cc1ccc(O)cc1
+3-hydroxyglutamine,NC(=O)CC(O)C(N)C(=O)O
+3-hydroxy-3-methylproline,CC1(O)CCNC1C(=O)O
+3-hydroxyleucine,CC(C)C(O)C(N)C(=O)O
+3-(3-pyridyl)-alanine,NC(Cc1cccnc1)C(=O)O
+"3,4-dehydrolysine",NCCC=CC(N)C(=O)O
+2-ketoisovaleric acid,CC(C)C(=O)C(=O)O
+"2S-amino-9,10-epoxy-8-oxodecanoic acid",NC(CCCCCC(=O)C1CO1)C(=O)O
+2-amino-3-hydroxycyclopent-2-enone,NC1=C(O)CCC1=O
+5-aminolevulinic acid,NCC(=O)CCC(=O)O
+3-hydroxyasparagine,NC(=O)C(O)C(N)C(=O)O
+(E)-4-methylhex-2-enoic acid,CCC(C)C=CC(=O)O
+linoleic acid,CCCCCC=CCC=CCCCCCCCC(=O)O
+beta-phenylalanine,NC(CC(=O)O)c1ccccc1
+dehydrotryptophan,NC(=Cc1c[nH]c2ccccc12)C(=O)O
+R-beta-methyltryptophan,CC(c1c[nH]c2ccccc12)C(N)C(=O)O
+"2,3-dihydroxy-para-aminobenzoic acid",Nc1ccc(C(=O)O)c(O)c1O
+"(2S,3R)-2-amino-3-hydroxy-4-(4-nitrophenyl)butanoic acid",NC(C(=O)O)C(O)Cc1ccc([N+](=O)[O-])cc1
+3S-methylproline,CC1CCNC1C(=O)O
+phenyllactic acid,CC(O)(C(=O)O)c1ccccc1
+p-hydroxymandelate,O=C(O)C(O)c1ccc(O)cc1
+6-methylsalicylic acid,Cc1cccc(O)c1C(=O)O
+2-aminooctanoic acid,CCCCCCC(N)C(=O)O
+2S-aminododecanoic acid,CCCCCCCCCCC(N)C(=O)O
+5-chlorotryptophan,NC(Cc1c[nH]c2ccc(Cl)cc12)C(=O)O
+"1-(1,1-dimethylallyl)-tryptophan",C=CC(C)(C)n1cc(CC(N)C(=O)O)c2ccccc21
+3-nitrotyrosine,NC(Cc1ccc(O)c([N+](=O)[O-])c1)C(=O)O
+"(S,E)-2-amino-4-decenoic acid",CCCCCC=CCC(N)C(=O)O
+"(2S,6R)-diamino-(5R,7)-dihydroxy-heptanoic acid",NC(CCC(O)C(N)CO)C(=O)O
+"3,4-dihydroxybenzoic acid",O=C(O)c1ccc(O)c(O)c1
+"3-amino-2,4-dihydroxybenzoic acid",Nc1c(O)ccc(C(=O)O)c1O
+2-sulfamoylacetic acid,NS(=O)(=O)CC(=O)O
+2-ketoglutaric acid,O=C(O)CCC(=O)C(=O)O
+succinic semialdehyde,O=CCCC(=O)O
+An acid hydrazine polyene (intermediate 14),O=C(O)CCC(=O)NNCC(=O)O
+succinyl-hydrazinoacetic acid,NN=CC=CC=CC=CC=CC=CC(=O)O
+graminine,NC(CCCN(O)N=O)C(=O)O
+"phenazine-1,6-dicarboxylic acid",O=C(O)c1cccc2nc3c(C(=O)O)cccc3nc12
+5-chloroanthranilic acid,Nc1ccc(Cl)cc1C(=O)O
+azetidine-2-carboxylic acid,O=C(O)C1CCN1
 3-methylasparagine,CC(C(N)=O)C(N)C(=O)O
 3-hydroxy-4-methylproline,CC1CNC(C(=O)O)C1O
-o-methylthreonine,COC(C)C(N)C(=O)O
-4-methoxytryptophan,COc1[nH]c2ccccc2c1CC(N)C(=O)O
-4s-acetyl-5s-methylproline,CC(=O)C1NC(C(=O)O)CC1C
-para-aminobenzoic-acid,Nc1ccc(C(=O)O)cc1
-3s-cyclohex-2-enylalanine,NC(C(=O)O)C(CC1=CCCCC1)C(=O)O
-s-beta-hydroxycyclohex-2s-enylalanine,NC(C(=O)O)C(O)CC1C=CCCC1
-arginine,NC(N)=NCCCC(N)C(=O)O
-homoserine,NC(CCO)C(=O)O
-3s-hydroxyleucine,CC(C)C(O)C(N)C(=O)O
-lysine,NCCCCC(N)C(=O)O
+pyrrole-2-carboxylic acid,O=C(O)c1ccc[nH]1
 3-hydroxytyrosine,NC(Cc1ccc(O)c(O)c1)C(=O)O
-3r-methylglutamic-acid,CC(CC(=O)O)C(N)C(=O)O
-r-beta-methylphenylalanine,CC(Cc1ccccc1)C(N)C(=O)O
-2-fluorophenylalanine,NC(Cc1ccccc1F)C(=O)O
-3-fluorophenylalanine,NC(Cc1cccc(F)c1)C(=O)O
-6-chlorotryptophan,NC(Cc1c[nH]c2cc(Cl)ccc12)C(=O)O
-"6,7-dichlorotryptophan",NC(Cc1c[nH]c2c(Cl)c(Cl)ccc12)C(=O)O
-beta-hydroxyphenylalanine,NC(C(=O)O)C(O)c1ccccc1
-beta-hydroxy-3-hydroxy-o-methyl-5-methyltyrosine,COc1cc(C)cc(CC(O)C(N)C(=O)O)c1O
-4r-propylproline,CCCC1CNC(C(=O)O)C1
-meta-tyrosine,NC(Cc1cccc(O)c1)C(=O)O
-3-hydroxy-o-methyl-5-methyltyrosine,COc1cc(C)cc(CC(N)C(=O)O)c1O
-r-beta-methyltryptophan,CC(Cc1c[nH]c2ccccc12)C(N)C(=O)O
-3-hydroxy-para-aminobenzoic-acid,Nc1ccc(C(=O)O)cc1O
-5-chlorotryptophan,NC(Cc1c[nH]c2ccc(Cl)cc12)C(=O)O
-n6-hydroxylysine,NC(CCCCNO)C(=O)O
-2-aminobutyric-acid,CCC(N)C(=O)O
-pipecolic-acid,O=C(O)C1CCCCN1
-salicylic-acid,O=C(O)c1ccccc1O
-alaninol,CC(N)CO
-2-ketoisovaleric-acid,CC(C)C(=O)C(=O)O
-cinnamic-acid,O=C(O)C=Cc1ccccc1
-propionic-acid,CCC(=O)O
-anthanilic-acid,Nc1ccccc1C(=O)O
-1-aminocyclopropane-1-carboxylic-acid,NC1(C(=O)O)CC1
-phenylpyruvic-acid,O=C(O)C(=O)Cc1ccccc1
-capreomycidine,N=C(N)NC1NCC(C(=O)O)N1
-guanidinoacetic-acid,N=C(N)NCC(=O)O
-4-acetamidopyrrole-2-carboxylic-acid,CC(=O)Nc1c[nH]cc1C(=O)O
-kynurenine,Nc1ccccc1C(=O)CC(N)C(=O)O
-quinoxaline-2-carboxylic-acid,O=C(O)c1cnc2ccccc2n1
-enduracididine,NC1=NCC(CC(N)C(=O)O)N1
-3-(trans-2-nitrocyclopropyl)alanine,NC(CC1CC1[N+](=O)[O-])C(=O)O
-piperazic-acid,O=C(O)C1CCCNN1
-s-beta-hydroxyenduracididine,NC(N)=NC1CCN(CC(O)C(N)C(=O)O)N1
-3-methoxyanthranilic-acid,COc1cccc(C(=O)O)c1N
-cysteic-acid,NC(CS(=O)(=O)O)C(=O)O
-3-hydroxyquinaldic-acid,O=C(O)c1nc2ccccc2cc1O
-pyruvic-acid,CC(=O)C(=O)O
-6-chloro-4-hydroxy-1-methyl-indole-3-carboxylic-acid,Cn1c(C(=O)O)c(O)c2cc(Cl)ccc21
-"(2s,6r)-diamino-(5r,7)-dihydroxy-heptanoic-acid",CC(O)C(N)C(O)CCC(N)C(=O)O
-"3,4-dihydroxybenzoic-acid",O=C(O)c1ccc(O)c(O)c1
-3-amino-2-methylpropanoic-acid,CC(CN)C(=O)O.CC(CN)C(=O)O
-graminine,COc1cc(C=CC(=O)NCCc2ccc(O)c(O)c2)ccc1O
-pyrrole-2-carboxylic-acid,O=C(O)c1ccc[nH]1
-benzoxazolinate,C=C1Oc2cc(OC)cc(C(=O)O)c2NC1=O
-alpha-hydroxyglycine,NC(O)C(=O)O
-3-hydroxy-l-glutamate,NC(C(=O)O)C(O)CC(=O)O
-(4r)-4-[(e)-2-butenyl]-4-methyl-l-threonine,CC=CCC(C)C(O)C(N)C(=O)O
-"2,5-diamino-4,5-dihydroxypentanoic-acid",NC(CC(O)C(N)O)C(=O)O
-3-hydroxyproline,O=C(O)C1NCCC1O
-cis-4-hydroxymethylproline,O=C(O)C1CC(CO)CN1
-(3s)-3-hydroxy-l-enduracididine,NC1=NC(C(O)C(N)C(=O)O)CN1
-2-amino-3-hydroxy-3-(4-methoxyphenyl)propanoic-acid,COc1ccc(C(O)C(N)C(=O)O)cc1
-"3,4-dihydroxyhomotyrosine",NC(C(=O)O)C(O)C(O)c1ccc(O)cc1
-(3s)-3-hydroxy-l-arginine,NC(N)=NCCC(O)C(N)C(=O)O
-3-hydroxy-l-tryptophan,NC(C(=O)O)C(O)c1c[nH]c2ccccc12
-d-histidine,NC(C(=O)O)C(O)c1cnc[nH]1
-4-amino-3-hydroxyphenylalanine,Nc1ccc(C(O)C(N)C(=O)O)cc1
-2-aminoisobutyric-acid,CC(C)(N)C(=O)O
-o-methylserine,COCC(N)C(=O)O
-beta-methylphenylalanine,CC(c1ccccc1)C(N)C(=O)O
-beta-methyltryptophan,CC(c1c[nH]c2ccccc12)C(N)C(=O)O
-"2,3-diaminobutanoic-acid",CC(N)C(N)C(=O)O
-ureidoalanine,CC(NNC(N)=O)C(=O)O
-3-cyanoalanine,N#CCC(N)C(=O)O
-citrulline,NC(=O)NCCCC(N)C(=O)O
-2-amino-4-hydroxy-4-(5-hydroxypyridin-2-yl)-3-methylbutanoic-acid,CC(C(N)C(=O)O)C(O)c1ccc(O)cn1
-beta-hydroxy-4-nitrophenylalanine,NC(C(=O)O)C(O)c1ccc([N+](=O)[O-])cc1
-4-(dimethylamino)phenylalanine,CN(C)c1ccc(CC(N)C(=O)O)cc1
-3-(3-pyridyl)-l-alanine,NC(Cc1cccnc1)C(=O)O
+1-pyrroline-5-carboxylic acid,O=C(O)C1CCC=N1
+2S-aminodecanoic acid,CCCCCCCCC(N)C(=O)O
+D-phenyllactic acid,O=C(O)C(O)Cc1ccccc1
+malic acid,O=C(O)CC(O)C(=O)O
+"5,5-dimethylpipecolic acid",CC1(C)CCC(C(=O)O)NC1
+N5-anhydromevalonyl-N5-hydroxyornithine,CC(=CC(=O)N(O)CCCC(N)C(=O)O)CCO
+5-methylorsellinic acid,Cc1c(O)cc(O)c(C(=O)O)c1C
+betaine,C[N+](C)(C)CC(=O)O
+4-hydroxybenzoic acid,O=C(O)c1ccc(O)cc1
+5-methoxytyrosine,COc1cc(CC(N)C(=O)O)ccc1O
+5S-methylproline,CC1CCC(C(=O)O)N1
+6S-methyl-pipecolic acid,CC1CCCC(C(=O)O)N1
+2S-methyl-3-oxobutyrine,CC(=O)C(C)(N)C(=O)O
+4S-acetyl-5S-methylproline,CC(=O)OC1CC(C(=O)O)NC1C
+N-hydroxyvaline,CC(C)C(NO)C(=O)O
+4S-methylazetidine-2S-carboxylic acid,CC1CC(C(=O)O)N1
+4-amino-2-hydroxy-3-isopropoxybenzoic acid,CC(C)Oc1c(N)ccc(C(=O)O)c1O
+3-hydroxykynurenine,Nc1c(O)cccc1C(=O)CC(N)C(=O)O
+phenylglycine,NC(C(=O)O)c1ccccc1
+2-aminoisobutyric acid,CC(C)(N)C(=O)O
+valinol,CC(C)C(N)CO
+lysergic acid,CN1CC(C(=O)O)C=C2c3cccc4[nH]cc(c34)CC21
+2S-hydroxyisocaproic acid,CC(C)CC(O)C(=O)O
+phenylglyoxylic acid,O=C(O)C(=O)c1ccccc1
+3-hydroxybenzoic acid,O=C(O)c1cccc(O)c1
+benzoxazolinate,O=C(O)c1nc2ccccc2o1
+2-amino-3-hydroxy-2-(hydroxymethyl)propanoic acid,NC(CO)(CO)C(=O)O
+aminocoumarin,Nc1cc2ccccc2oc1=O
+cyclohexenyl,[C]1=CCCCC1
+4-acetamidopyrrole-2-carboxylic acid,CC(=O)Nc1c[nH]c(C(=O)O)c1
+fatty acid,*CC(=O)O
+2-amino-5-nitropentanoic acid,NC(CCC[N+](=O)[O-])C(=O)O
+beta-hydroxy-3-hydroxy-O-methyl-5-methyltyrosine,COc1c(C)cc(C(O)C(N)C(=O)O)cc1O
+succinic acid,O=C(O)CCC(=O)O
+"4-propenyl-2,3-dihydropyrrole-2-carboxylic acid",CC=CC1=CNC(C(=O)O)C1
+4-hydroxyphenylpyruvic acid,O=C(O)C(=O)Cc1ccc(O)cc1
+3-hydroxyquinaldic acid,O=C(O)c1nc2ccccc2cc1O
+norcoronamic acid,CC1CC1(N)C(=O)O
+4-nitrotryptophan,NC(Cc1c[nH]c2cccc([N+](=O)[O-])c12)C(=O)O
+pyruvic acid,CC(=O)C(=O)O
+3-methylleucine,CC(C)C(C)C(N)C(=O)O
+chloroacetate,O=C([O-])CCl
+p-aminophenylalanine,Nc1ccc(CC(N)C(=O)O)cc1
+"1,2,3,4-tetrahydro-6-hydroxy-3-isoquinolinecarboxylic acid",O=C(O)C1Cc2cc(O)ccc2CN1
+3-methoxy-5-methyl-naphthoic acid,COc1cc(C(=O)O)c2cccc(C)c2c1
+picolinic-acid,O=C(O)c1ccccn1
+S-adenosylmethionine,C[S+](CCC(N)C(=O)O)CC1OC(n2cnc3c(N)ncnc32)C(O)C1O
+n-acetylated-trp,CC(=O)NC(Cc1c[nH]c2ccccc12)C(=O)O
+R-beta-tyrosine,NC(CC(=O)O)c1ccc(O)cc1
+beta-ureidoalanine,NC(=O)NCC([NH3+])C(=O)[O-]
+nicotinic-acid,O=C(O)c1cccnc1
+4-amino-3-hydroxybenzoic acid,Nc1ccc(C(=O)O)cc1O
+2-hydroxy-3-methylpentanoic acid,CCC(C)C(O)C(=O)O
+3-isocyanobutanoic acid,[C-]#[N+]C(C)CC(=O)O
+1-aminocyclopropane-1-carboxylic acid,NC1(C(=O)O)CC1
+4-alkyl-L-proline,*CC1CNC(C(=O)O)C1
+trans-2-crotylglycine,CC=CCC(N)C(=O)O
+N-formylglycine,O=CNCC(=O)O
+4-methoxytryptophan,COc1cccc2[nH]cc(CC(N)C(=O)O)c12
+2-amino-4-hydroxy-4-phenylbutanoic acid,NC(CC(O)c1ccccc1)C(=O)O
+N-hydroxyalanine,CC(NO)C(=O)O
+furylalanine,NC(Cc1ccoc1)C(=O)O
+3-hydroxyisoleucine,CCC(C)(O)C(N)C(=O)O
+gallic acid,O=C(O)c1cc(O)c(O)c(O)c1
+N-methylornithine,CNCCCC(N)C(=O)O
+natphthoate,O=C([O-])c1cccc2ccccc12
 lactate,CC(O)C(=O)[O-]
-2-hydroxy-3-methylbutyric-acid,CC(C)C(O)C(=O)O
-3-phenyllactate,O=C([O-])C(O)Cc1ccccc1
-phosphinothricin,CP(=O)(O)CCC(N)C(=O)O
-dl-homophenylalanine,NC(CCc1ccccc1)C(=O)O
-l-homotyrosine,NC(CCc1ccc(O)cc1)C(=O)O
-3-amino-6-hydroxy-2-piperidone,NC1CCC(O)NC1=O
-4-oxopiperidine-2-carboxylic-acid,O=C1CCNC(C(=O)O)C1
-beta-phenylalanine,NC(CC(=O)O)c1ccccc1
-beta-tyrosine,NC(CC(=O)O)c1ccc(O)cc1
-alpha-phenylglycine,NC(C(=O)O)c1ccccc1
-"2-amino-2-(3,5-dichloro-4-hydroxyphenyl)acetic-acid",NC(C(=O)O)c1cc(Cl)c(O)c(Cl)c1
-coronamic-acid,CCC1CC1(N)C(=O)O
-2-amino-2-(1-methylcyclopropyl)acetic-acid,CC1(C(N)C(=O)O)CC1
+2-Hydroxy-4-(methylthio)butanoic acid,CSCCC(O)C(=O)O
+3-bromotyrosine,NC(Cc1ccc(O)c(Br)c1)C(=O)O
+2-hydroxyamino-butyric acid,CCC(NO)C(=O)O
+homoleucine,CC(C)CCC(N)C(=O)O
+homoarginine,NC(N)=NCCCCC(N)C(=O)O
+4-(dimethylamino)phenylalanine,CN(C)c1ccc(CC(N)C(=O)O)cc1
+4-acetamido-2-aminobutanoic acid,CC(=O)NCCC(N)C(=O)O
+benzoate,O=C([O-])c1ccccc1
+N1-methoxytryptophan,COn1cc(CC(N)C(=O)O)c2ccccc21
+indole-3-pyruvic acid,O=C(O)C(=O)Cc1c[nH]c2ccccc12
+Ochratoxin beta,CC1Cc2ccc(C(=O)O)c(O)c2C(=O)O1
+3-hydroxy-L-homotyrosine,[NH3+]C(C(=O)[O-])C(O)Cc1ccc(O)cc1
+3S-hydroxyproline,O=C(O)C1NCCC1O
+phenylpyruvic acid,O=C(O)C(=O)Cc1ccccc1
+4S-hydroxylysine,NCCC(O)CC(N)C(=O)O
+2-amino-4-(4-methoxyphenyl)butanoic acid,COc1ccc(CCC(N)C(=O)O)cc1
+2-amino-6-hydroxy-4-methyl-8-oxodecanoic acid,CCC(=O)CC(O)CC(C)CC(N)C(=O)O
+4-aminobutyric acid,NCCCC(=O)O
+4-hydroxykynurenine,Nc1cc(O)ccc1C(=O)CC(N)C(=O)O
+D-isovaline,CCC(C)(N)C(=O)O
+phenylalaninol,NC(CO)Cc1ccccc1
+N5-anhydromevalonyl-N5-hydroxy-ornithine,CC(=CC(=O)N(O)CCCC([NH3+])C(=O)[O-])CCO
+"4S,5-dihydroxy-2S-aminopentanoic acid",NC(CC(O)CO)C(=O)O
+homophenylalanine,NC(CCc1ccccc1)C(=O)O
+butyric acid,CCCC(=O)O
+pentanoic acid,CCCCC(=O)O
+benzoic acid,O=C(O)c1ccccc1
