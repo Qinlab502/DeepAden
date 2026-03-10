@@ -1,4 +1,4 @@
-name: DeepAden_test
+name: DeepAden
 channels:
   - conda-forge
   - bioconda
