@@ -14,13 +14,14 @@ def ensure_dirs(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def precompute_protein_features(csv_file, output_dir='example/output/protein_data', 
-                               device="cuda", batch_size=256):
+def precompute_protein_features(csv_file, output_dir='example/output/protein_data', batch_size=256):
     """
     Precompute protein features using ESM2 model.
     The output embeddings will be 1280-dimensional vectors.
     """
     ensure_dirs(output_dir)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     print("Loading ESM model...")
     model_name = 'model/esm2_t33_650M_UR50D'
@@ -93,6 +94,5 @@ if __name__ == "__main__":
     precompute_protein_features(
         csv_file="train_data_to50_augmented_v2.csv",  # Path to your CSV file with 'id' and 'pocket' columns
         output_dir="./protein_data",
-        device="cuda",
         batch_size=256
     )

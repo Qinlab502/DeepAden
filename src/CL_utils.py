@@ -32,13 +32,13 @@ def load_kde_model(kde_path):
 # -----------------------------------------------------------------------------
 # Evaluation
 # -----------------------------------------------------------------------------
-def evaluate_model(model, test_loader, mol_feature_dir, device="cuda"):
+def evaluate_model(model, test_loader, mol_feature_dir):
     """
     Evaluate model retrieval accuracy using molecule names as labels.
     Each protein embedding is compared against all molecule embeddings.
     """
     model.eval()
-    device = torch.device(device)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # --- 1. Build molecule embedding bank ---
     all_mol_embeds = []
@@ -97,7 +97,7 @@ def evaluate_model(model, test_loader, mol_feature_dir, device="cuda"):
 def perform_retrieval(model, protein_ids, molecule_labels=None, 
                      protein_feature_dir="example/output/protein_data", 
                      molecule_feature_dir="data/molecule_data", 
-                     kde_path='model/kde_model/kde_calibrator.pkl', top_k=3, device="cuda", batch_size=64):
+                     kde_path='model/kde_model/kde_calibrator.pkl', top_k=3, batch_size=64):
     """
     Retrieve molecules for each protein.
     
@@ -108,7 +108,7 @@ def perform_retrieval(model, protein_ids, molecule_labels=None,
     if kde_path is None:
         raise ValueError("kde_path must be provided to perform calibrated retrieval.")
 
-    model.to(device)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     
     # Load KDE model (Mandatory)

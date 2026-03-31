@@ -176,7 +176,11 @@ def main():
             raise FileNotFoundError(f"Model weights not found at {args.weights}")
             
         model = ContrastiveModel()
-        model.load_state_dict(torch.load(args.weights))
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        state_dict = torch.load(args.weights, map_location=device)
+        model.load_state_dict(state_dict)
+        model.to(device)
+        
         logger.info(f"Successfully loaded model from {args.weights}")
        
         # 5. Data preparation

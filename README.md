@@ -28,17 +28,13 @@ Features:
 - [](#)
   - [Overview](#overview)
   - [Getting Started](#getting-started)
-    - [Model weights](#model-weights)
     - [Installation](#installation)
+    - [Model weights](#model-weights)
   - [Data](#data)
   - [Usage](#usage)
   - [Results](#results)
 
 ## Getting Started
-
-### Model weights
-
-Before using DeepAden, you need to download two pretrained models and place them in the `models`directory: [ESM2](https://huggingface.co/facebook/esm2_t33_650M_UR50D/tree/main) and [MoLFormer](https://huggingface.co/ibm/MoLFormer-XL-both-10pct/tree/main). You can find other weights required for inference in the same directory.
 
 ### Installation
 
@@ -58,6 +54,27 @@ conda env create -f environment.yml
 conda activate DeepAden
 ```
 
+### Model weights
+
+Before using DeepAden, you need to download two pretrained models and place them in the `models` directory: 
+- ESM2
+- MoLFormer
+
+Download via `git lfs` (recommended)
+
+```
+git lfs install
+```
+Then clone the pretrained model repositories:
+
+```
+# ESM2
+git clone https://huggingface.co/facebook/esm2_t33_650M_UR50D models/esm2_t33_650M_UR50D
+
+# MoLFormer
+git clone https://huggingface.co/ibm-research/MoLFormer-XL-both-10pct models/MoLFormer-XL-both-10pct
+```
+
 ## Data
 
 The `data` directory contains essential files for model execution and other supplementary files:
@@ -71,6 +88,7 @@ The `data` directory contains essential files for model execution and other supp
 **Note**: After initial execution, DeepAden automatically generates a `molecule_data` subdirectory containing feature embedding vectors for all molecules in the database. If you wish to update the substrate database, you can upload the new `mol_db.csv` file and delete the existing `molecule_data` folder, then rerun DeepAden again.
 
 The `example` directory contains sample input files in each supported format for testing the model.
+
 
 ## Usage
 Before using DeepAden for the first time, the HMM files needs to be decompressed using the `hmmpress` command.
