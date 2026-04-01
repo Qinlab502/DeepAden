@@ -101,7 +101,7 @@ hmmpress data/nrps_domains/nrpspksdomains.hmm
 The run_DeepAden.sh script is provided to execute the complete DeepAden prediction pipeline, supporting parameter configurations including input FASTA file path (-f), GBK file (-g), genome file (-G), top_k (-k), output directory (-o), and number of threads (-n). Detailed usage can be viewed via ./run_DeepAden.sh -h
 
 ```
-Usage: run_DeepAden.sh (-f <fasta_file> | -g <gbk_file> | -G <genome_fasta>) [-o <output_dir>] [-p <plm_path>] [-c <cm_path>] [-d <binding_model_dir>] [-r <reference_csv>] [-n <processes>] [-k <top_k>] [-m <model_weight_name> [-D <device>]]
+Usage: run_DeepAden.sh (-f <fasta_file> | -g <gbk_file> | -G <genome_fasta>) [-o <output_dir>] [-p <plm_path>] [-c <cm_path>] [-d <binding_model_dir>] [-r <reference_csv>] [-n <processes>] [-k <top_k>] [-m <model_weight_name>] [-D <device>]
 
 Input Options (choose one):
   -f <fasta_file>           Path to the input protein FASTA file
