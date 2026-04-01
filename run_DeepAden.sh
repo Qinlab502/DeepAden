@@ -4,7 +4,20 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+CYAN='\033[1;36m'
+GRAY='\033[0;90m'
+BOLD='\033[1m'
 NC='\033[0m'
+
+info()  { echo -e "${GRAY}[INFO]${NC}  $*"; }
+warn()  { echo -e "${YELLOW}[WARN]${NC}  $*" >&2; }
+error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+banner() {
+    echo -e "\n${CYAN}$(printf '═%.0s' {1..55})${NC}"
+    echo -e "${CYAN}  DeepAden  │  $*${NC}"
+    echo -e "${CYAN}$(printf '═%.0s' {1..55})${NC}"
+}
 
 FASTA_FILE=""
 GBK_FILE=""
@@ -25,6 +38,7 @@ HMM_MODEL="${SCRIPT_DIR}/data/AMP-binding/PF00501.hmm"
 
 TOP_K=3                        
 MODEL_WEIGHT_NAME="all.weight"  
+DEVICE="auto"                   # Device to use: auto | cpu | gpu
 
 function usage() {
     echo "Usage: $0 (-f <fasta_file> | -g <gbk_file> | -G <genome_fasta>) [-o <output_dir>] [-p <plm_path>] [-c <cm_path>] [-d <binding_model_dir>] [-r <reference_csv>] [-n <processes>] [-k <top_k>] [-m <model_weight_name>]"
@@ -43,6 +57,7 @@ function usage() {
     echo "  -k <top_k>                Use top-k method with specified k value (default: 3)"
     echo "  -n <processes>            Number of processes (default: $PROCESS)"
     echo "  -m <model_weight_name>    Model weight to use: all.weight or benchmark.weight (default: all.weight)"
+    echo "  -D <device>               Device to use: auto, cpu, or gpu (default: auto)"
     echo ""
     echo "Mapping:"
     echo "  all.weight       -> weights_for_users.pth"
@@ -52,7 +67,7 @@ function usage() {
 }
 
 
-while getopts "f:g:G:o:p:c:d:r:n:k:m:h" opt; do
+while getopts "f:g:G:o:p:c:d:r:n:k:m:D:h" opt; do
     case $opt in
         f)
             FASTA_FILE=$(realpath "$OPTARG")
@@ -74,6 +89,7 @@ while getopts "f:g:G:o:p:c:d:r:n:k:m:h" opt; do
         n) PROCESS=$OPTARG ;;
         k) TOP_K=$OPTARG ;;          
         m) MODEL_WEIGHT_NAME="$OPTARG" ;;  
+        D) DEVICE="$OPTARG" ;;
         h) usage ;;
         *) usage ;;
     esac
@@ -88,19 +104,24 @@ case "$MODEL_WEIGHT_NAME" in
         BINDING_WEIGHTS="${BINDING_MODEL_DIR}/weights_for_benchmark.pth"
         ;;
     *)
-        echo -e "${RED}Error: Unknown model weight name '$MODEL_WEIGHT_NAME'. Use 'all.weight' or 'benchmark.weight'.${NC}" >&2
+        error "Unknown model weight name '$MODEL_WEIGHT_NAME'. Use 'all.weight' or 'benchmark.weight'."
         exit 1
         ;;
 esac
 
 if [ ! -f "$BINDING_WEIGHTS" ]; then
-    echo -e "${RED}Error: Binding weight file not found: $BINDING_WEIGHTS${NC}" >&2
+    error "Binding weight file not found: $BINDING_WEIGHTS"
     exit 1
 fi
 
+case "$DEVICE" in
+    auto|cpu|gpu) ;;
+    *) error "-D must be 'auto', 'cpu', or 'gpu'."; exit 1 ;;
+esac
+
 
 if [ -z "$INPUT_TYPE" ]; then
-    echo -e "${RED}Error: Either -f (fasta_file), -g (gbk_file) or -G (genome_fasta) is required.${NC}" >&2
+    error "Either -f (fasta_file), -g (gbk_file) or -G (genome_fasta) is required."
     usage
 fi
 
@@ -111,7 +132,7 @@ input_count=0
 [ -n "$GENOME_FILE" ] && input_count=$((input_count+1))
 
 if [ "$input_count" -ne 1 ]; then
-    echo -e "${RED}Error: Exactly one of -f, -g or -G must be specified.${NC}" >&2
+    error "Exactly one of -f, -g or -G must be specified."
     usage
 fi
 
@@ -119,20 +140,24 @@ mkdir -p "$OUTPUT_DIR"
 
 
 if [ "$INPUT_TYPE" = "gbk" ]; then
-    echo "Processing GBK file: extracting CDS sequences..."
+    banner "Pre-processing — GBK Extraction"
+    info "Input  : $GBK_FILE"
+    info "Running GBK_extract.py ..."
     python "${PYTHON_SCRIPTS_DIR}/GBK_extract.py" "$GBK_FILE" "${OUTPUT_DIR}/extracted_cds.fasta"
 
     if [ ! -s "${OUTPUT_DIR}/extracted_cds.fasta" ]; then
-        echo -e "${RED}Error: Failed to extract CDS sequences from GBK file or no CDS found.${NC}"
+        error "Failed to extract CDS sequences from GBK file or no CDS found."
         exit 1
     fi
+    info "[✓] CDS sequences extracted → ${OUTPUT_DIR}/extracted_cds.fasta"
 
     FASTA_FILE="${OUTPUT_DIR}/extracted_cds.fasta"
 fi
 
 
 if [ "$INPUT_TYPE" = "genome" ]; then
-    echo "Processing genome FASTA: running prodigal and NRPS domain detection..."
+    banner "Pre-processing — Genome ORF Prediction & Domain Detection"
+    info "Input  : $GENOME_FILE"
 
     GENOME_BASENAME=$(basename "$GENOME_FILE")
     GENOME_PREFIX="${GENOME_BASENAME%.*}"
@@ -141,71 +166,81 @@ if [ "$INPUT_TYPE" = "genome" ]; then
     GENOME_FAA="${OUTPUT_DIR}/${GENOME_PREFIX}.faa"
     DOMAINS_CSV="${OUTPUT_DIR}/${GENOME_PREFIX}_domains.csv"
 
- 
+    info "Running Prodigal ..."
     prodigal -i "$GENOME_FILE" -f gbk -o "$GENOME_GBK" -p single -a "$GENOME_FAA"
 
     if [ ! -s "$GENOME_FAA" ]; then
-        echo -e "${RED}Error: Prodigal failed or produced empty protein FASTA (${GENOME_FAA}).${NC}"
+        error "Prodigal failed or produced empty protein FASTA (${GENOME_FAA})."
         exit 1
     fi
+    info "[✓] Prodigal finished → ${GENOME_FAA}"
 
-
+    info "Running domain_identification.py ..."
     python "${PYTHON_SCRIPTS_DIR}/domain_identification.py" \
         -r "${SCRIPT_DIR}/data/nrps_domains/nrpspksdomains.hmm" \
         -f "$GENOME_FAA" \
         -o "$DOMAINS_CSV"
 
     if [ ! -s "$DOMAINS_CSV" ]; then
-        echo -e "${RED}Error: domain_identification.py produced empty domain CSV (${DOMAINS_CSV}).${NC}"
+        error "domain_identification.py produced empty domain CSV (${DOMAINS_CSV})."
         exit 1
     fi
+    info "[✓] Domain table written → ${DOMAINS_CSV}"
 
-
+    info "Running detect_nrps_modules.py ..."
     python "${PYTHON_SCRIPTS_DIR}/detect_nrps_modules.py" \
         -i "$DOMAINS_CSV" \
         -f "$GENOME_FAA" \
         -o "$OUTPUT_DIR/"
 
-   
     if [ ! -s "${OUTPUT_DIR}/extracted_cds.fasta" ]; then
-        echo -e "${RED}Error: detect_nrps_modules.py did not produce extracted_cds.fasta in ${OUTPUT_DIR}.${NC}"
+        error "detect_nrps_modules.py did not produce extracted_cds.fasta in ${OUTPUT_DIR}."
         exit 1
     fi
+    info "[✓] A-domain FASTA written → ${OUTPUT_DIR}/extracted_cds.fasta"
 
     FASTA_FILE="${OUTPUT_DIR}/extracted_cds.fasta"
 fi
 
 
+banner "A-domain Detection — hmmscan"
+info "Scanning : $FASTA_FILE"
 hmmscan --domtblout "${OUTPUT_DIR}/adomains.dom" "$HMM_MODEL" "$FASTA_FILE" > /dev/null
 python "${PYTHON_SCRIPTS_DIR}/extract_adomains.py" "${OUTPUT_DIR}/adomains.dom" "$FASTA_FILE" "${OUTPUT_DIR}/adomains.fasta"
 
 if [ ! -s "${OUTPUT_DIR}/adomains.fasta" ]; then
-    echo -e "${RED}Warning: No adenylation (A) domains detected.${NC}"
+    warn "No adenylation (A) domains detected. Exiting."
     exit 1
 fi
+info "[✓] A-domains extracted → ${OUTPUT_DIR}/adomains.fasta"
+
 
 python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_featurization.py" \
     --fasta "${OUTPUT_DIR}/adomains.fasta" \
     --feature_dir "$OUTPUT_DIR" \
     --plm "$PLM" \
-    --cm "$CM"
+    --cm "$CM" \
+    --device "$DEVICE"
 
 python "${PYTHON_SCRIPTS_DIR}/ABP_GAT_inference.py" \
     --fasta "${OUTPUT_DIR}/adomains.fasta" \
     --feature_dir "$OUTPUT_DIR" \
     --reference "$REFERENCE" \
     --output "$OUTPUT_DIR/" \
-    --GAT "$GAT"
+    --GAT "$GAT" \
+    --device "$DEVICE"
 
 
 BINDING_OUTPUT_FILE="${OUTPUT_DIR}/substrate_predictions_top${TOP_K}_${MODEL_WEIGHT_NAME}.csv"
 BINDING_OUTPUT_JSON="${OUTPUT_DIR}/substrate_predictions_top${TOP_K}_${MODEL_WEIGHT_NAME}.json"
 
+
 python "${PYTHON_SCRIPTS_DIR}/binding_prediction.py" \
     --input "$OUTPUT_DIR/ABP_prediction.csv" \
     --top_k "$TOP_K" \
     --weights "$BINDING_WEIGHTS" \
-    --output "$BINDING_OUTPUT_FILE"
+    --output "$BINDING_OUTPUT_FILE" \
+    --device "$DEVICE"
 
 
 if [ "$INPUT_TYPE" = "genome" ]; then
@@ -214,18 +249,24 @@ if [ "$INPUT_TYPE" = "genome" ]; then
     MERGED_NRPS_JSON="${OUTPUT_DIR}/NRPS_modules_pred.json"
 
     if [ -f "$NRPS_JSON" ] && [ -f "$PRED_JSON" ]; then
-        echo "Merging predictions into NRPS_modules.json ..."
+        banner "Post-processing — Merging Predictions into NRPS JSON"
+        info "Running nrps_json.py ..."
         python "${PYTHON_SCRIPTS_DIR}/nrps_json.py" \
             --nrps-json "$NRPS_JSON" \
             --pred-json "$PRED_JSON" \
             --out "$MERGED_NRPS_JSON"
+        info "[✓] Merged NRPS JSON → ${MERGED_NRPS_JSON}"
     else
-        echo "Skipping NRPS merge (genome input but missing NRPS or prediction JSON)."
-        echo "  NRPS_JSON: $NRPS_JSON"
-        echo "  PRED_JSON: $PRED_JSON"
+        warn "Skipping NRPS merge (missing NRPS or prediction JSON)."
+        warn "  NRPS_JSON : $NRPS_JSON"
+        warn "  PRED_JSON : $PRED_JSON"
     fi
 fi
 
 
+# info "Cleaning up intermediate files ..."
 rm -rf "$OUTPUT_DIR/emb_dir" "$OUTPUT_DIR/pf_dir" "$OUTPUT_DIR/ei_dir" "$OUTPUT_DIR/feature_dir" "$OUTPUT_DIR/protein_data" "$OUTPUT_DIR/pyg_dir"
 rm -f "$OUTPUT_DIR/adomains.fasta" "$OUTPUT_DIR/adomains.dom" "$OUTPUT_DIR/extracted_cds.fasta" "$OUTPUT_DIR"/*.gbk "$OUTPUT_DIR"/*.faa "$OUTPUT_DIR"/*_domains.csv
+
+echo -e "\n${GREEN}${BOLD}DeepAden finished successfully.${NC}"
+info "Results saved to: $OUTPUT_DIR"

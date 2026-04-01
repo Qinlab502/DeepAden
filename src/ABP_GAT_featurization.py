@@ -12,8 +12,6 @@ transformers_logging.set_verbosity_error()
 # Import from model.py
 from deepAden_model import load_contact
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # ============================
 # Utility Functions
 # ============================
@@ -236,12 +234,28 @@ def Create_Contacts_EdgeIndex(seq_df, ei_dir, base_model, tokenizer, contact_mod
 # Main Function
 # ============================
 
+def resolve_device(device_arg):
+    """Resolve the device argument to a torch.device."""
+    if device_arg == "gpu":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        else:
+            print("Warning: GPU requested but CUDA is not available. Falling back to CPU.")
+            return torch.device("cpu")
+    elif device_arg == "cpu":
+        return torch.device("cpu")
+    else:  # auto
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Process sequences from a FASTA file and compute features.")
     parser.add_argument("--fasta", type=str, required=True, help="Path to the input multi-sequence FASTA file.")
     parser.add_argument("--feature_dir", type=str, required=True, help="Directory to save all output files in subdirectories.")
     parser.add_argument("--plm", type=str, required=True, help="Path or model name to protein language model weights (ESM2).")
     parser.add_argument("--cm", type=str, required=True, help="Path to contact prediction model weights.")
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "gpu"],
+                        help="Device to use: auto, cpu, or gpu (default: auto)")
 
     args = parser.parse_args()
 
@@ -269,7 +283,8 @@ def main():
     sequences_dict = dict(zip(seq_df['id'], seq_df['sequence']))
 
     # Step 2: Initialize ESM2 model
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = resolve_device(args.device)
+    print(f"Using device: {device}")
     tokenizer = EsmTokenizer.from_pretrained(plm_path)
     model_esm = EsmModel.from_pretrained(plm_path).to(device)
     model_esm.eval()

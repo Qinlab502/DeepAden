@@ -52,7 +52,7 @@ def write_fasta(CDS_features, output_file):
     for i, feature in enumerate(CDS_features):
         # seq_id = feature['protein_id'] if feature['protein_id'] else f"CDS_{i+1}"
         seq_id = feature['locus_tags'][0] if feature['locus_tags'][0] else f"CDS_{i+1}"
-        
+       
         seq_record = SeqRecord(
             Seq(feature['sequence']),
             id=seq_id,

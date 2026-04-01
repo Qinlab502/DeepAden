@@ -50,12 +50,12 @@ def create_pyg_data_inference(output_dir: str, logger) -> None:
         logger.info(f"Removing existing directory: {pyg_dir}")
         shutil.rmtree(pyg_dir)
     os.makedirs(pyg_dir, exist_ok=True)
-    logger.info(f"Processing features into PyG format. Output will be saved in {pyg_dir}.")
+    logger.debug(f"Processing features into PyG format. Output will be saved in {pyg_dir}.")
 
     seq_ids = set(
         file[:file.rfind('_')] for file in os.listdir(esm_dir) if file.endswith('_emb.pkl')
     )
-    logger.info(f"Found {len(seq_ids)} sequences for feature processing")
+    logger.debug(f"Found {len(seq_ids)} sequences for feature processing")
 
     for seq_id in tqdm(seq_ids, desc="Creating PyG data objects"):
         esm_path = os.path.join(esm_dir, f"{seq_id}_emb.pkl")
@@ -81,7 +81,7 @@ def create_pyg_data_inference(output_dir: str, logger) -> None:
             torch.save(data, output_pt_path)
         except Exception as e:
             logger.error(f"Error processing {seq_id}: {e}")
-    logger.info(f"Completed processing all sequences. Output saved in '{pyg_dir}'.")
+    logger.debug(f"Completed processing all sequences. Output saved in '{pyg_dir}'.")
 
 def read_fasta_to_dataframe(fasta_file, logger):
     sequences = {'id': [], 'sequence': []}
@@ -91,7 +91,7 @@ def read_fasta_to_dataframe(fasta_file, logger):
                 sequences['id'].append(record.id)
                 sequences['sequence'].append(str(record.seq))
         df = pd.DataFrame(sequences)
-        logger.info(f"Successfully read {len(df)} sequences from FASTA file.")
+        logger.info(f"Found {len(df)} A-domain sequence(s) for prediction")
         return df
     except Exception as e:
         logger.error(f"Error reading FASTA file: {e}")
@@ -282,7 +282,7 @@ def process_sequences_individually(seq_df, predicteds, target_slices_path, logge
         tasks.append((seq_id, sequence, prediction, target_df))
     best_matches = []
     max_workers = num_processes if num_processes > 0 else min(32, os.cpu_count() + 4)
-    logger.info(f"Using {max_workers} worker processes")
+    logger.debug(f"Using {max_workers} worker processes")
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         results = list(tqdm(
             executor.map(process_single_sequence, tasks), 
@@ -300,31 +300,47 @@ def process_sequences_individually(seq_df, predicteds, target_slices_path, logge
         best_matches.extend(res)
     return pd.DataFrame(best_matches)
 
+def resolve_device(device_arg):
+    """Resolve the device argument to a torch.device."""
+    if device_arg == "gpu":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        else:
+            print("Warning: GPU requested but CUDA is not available. Falling back to CPU.")
+            return torch.device("cpu")
+    elif device_arg == "cpu":
+        return torch.device("cpu")
+    else:  # auto
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def main(args):
     logger = logging.getLogger('ABP_GAT_inference')
     logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s', "%Y-%m-%d %H:%M:%S")
+    formatter = logging.Formatter('%(message)s')
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
     logger.handlers.clear()
     logger.addHandler(console_handler)
 
-    logger.info("========== ABP GAT Pipeline Started ==========")
-    logger.info(f"Input FASTA: {args.fasta}")
-    logger.info(f"Output Directory: {args.output}")
-    logger.info(f"Feature Directory: {args.feature_dir}")
-    logger.info(f"Model Path: {args.GAT}")
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logger.info(f"Using device: {device}")
+    import time
+    t0 = time.time()
+
+    logger.info("\n\033[1;36m" + "="*55)
+    logger.info("  DeepAden  │  Step 1/2 — Binding Pocket Prediction")
+    logger.info("=" * 55 + "\033[0m")
+    logger.info(f"  \033[90mInput  :\033[0m {args.fasta}")
+    device = resolve_device(args.device)
+    logger.info(f"  \033[90mDevice :\033[0m {device}\n")
 
     feature_dir = args.feature_dir
     pyg_pt_files_path = os.path.join(feature_dir, "pyg_dir")
     create_pyg_data_inference(feature_dir, logger)
     pt_files_path = pyg_pt_files_path
-    logger.info(f"Using PyG data from {pt_files_path}")
 
     seq_df = read_fasta_to_dataframe(args.fasta, logger)
+    logger.info(f"  \033[90m[✓]\033[0m Loaded {len(seq_df)} A-domain sequence(s)")
 
     # Initialize and load model
     config = Config()
@@ -349,13 +365,13 @@ def main(args):
         model.load_state_dict(torch.load(model_weights_path, map_location=device))
         model.to(device)
         model.eval()
-        logger.info(f"Loaded model weights from {model_weights_path}")
+        logger.debug(f"Loaded model weights from {model_weights_path}")
     except Exception as e:
-        logger.error(f"Error loading model weights: {e}")
+        logger.error(f"  [ERROR] Failed to load model weights: {e}")
         raise
-    logger.info("Performing predictions...")
+    logger.info(f"  \033[90m[✓]\033[0m Model loaded: ABP-GAT")
+    logger.info(f"  \033[90m[»]\033[0m Predicting binding pockets...")
     predicteds = perform_predictions(model, config, device, seq_df, pt_files_path, logger)
-    logger.info("Processing predictions and aligning with references...")
     best_match_align = process_sequences_individually(
         seq_df=seq_df,
         predicteds=predicteds,
@@ -363,7 +379,6 @@ def main(args):
         logger=logger,
         num_processes=args.processes
     )
-    logger.info("Post-processing results...")
 
     def replace_positions(s, group_name, positions=[1, 2, 3, 8]):
         if pd.isna(s):
@@ -427,11 +442,13 @@ def main(args):
     output_path = os.path.join(args.output, output_filename)
     try:
         final_df.to_csv(output_path, index=False)
-        logger.info(f"Results saved to {output_path}")
     except Exception as e:
-        logger.error(f"Error saving results: {e}")
+        logger.error(f"  [ERROR] Failed to save results: {e}")
         raise
-    logger.info("========== ABP GAT Pipeline Completed ==========")
+    elapsed = time.time() - t0
+    logger.info(f"  \033[90m[✓]\033[0m Output → {output_path}")
+    logger.info(f"\n\033[1;32m  Step 1/2 completed in {elapsed:.1f}s\033[0m")
+#     logger.info("\033[1;36m" + "="*55 + "\033[0m\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ABP-GAT: Protein pocket prediction using GAT model.")
@@ -441,6 +458,8 @@ if __name__ == "__main__":
     parser.add_argument('--output', type=str, required=True, help='Output directory for results.')
     parser.add_argument('--GAT', type=str, required=True, help='Path to the trained model weights file.')
     parser.add_argument('--processes', type=int, default=0, help='Number of processes for parallel processing (0=auto).')
+    parser.add_argument('--device', type=str, default='auto', choices=['auto', 'cpu', 'gpu'],
+                        help='Device to use: auto, cpu, or gpu (default: auto)')
     args = parser.parse_args()
     os.makedirs(args.output, exist_ok=True)
     main(args)

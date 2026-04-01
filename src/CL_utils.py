@@ -24,7 +24,7 @@ def load_kde_model(kde_path):
     if not os.path.exists(kde_path):
         raise FileNotFoundError(f"KDE model not found at {kde_path}")
     
-    print(f"[Utils] Loading KDE model from {kde_path}...")
+    # Loading KDE calibrator
     with open(kde_path, 'rb') as f:
         calibrator = pickle.load(f)
     return calibrator
@@ -97,18 +97,21 @@ def evaluate_model(model, test_loader, mol_feature_dir):
 def perform_retrieval(model, protein_ids, molecule_labels=None, 
                      protein_feature_dir="example/output/protein_data", 
                      molecule_feature_dir="data/molecule_data", 
-                     kde_path='model/kde_model/kde_calibrator.pkl', top_k=3, batch_size=64):
+                     kde_path='model/kde_model/kde_calibrator.pkl', top_k=3, batch_size=64,
+                     device=None):
     """
     Retrieve molecules for each protein.
     
     Args:
         kde_path: Path to the pickled KDECalibrator. MUST be provided.
         top_k: Number of top molecules to return.
+        device: torch.device to use. If None, auto-detects.
     """
     if kde_path is None:
         raise ValueError("kde_path must be provided to perform calibrated retrieval.")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     
     # Load KDE model (Mandatory)
@@ -120,16 +123,12 @@ def perform_retrieval(model, protein_ids, molecule_labels=None,
     
     # Get all molecule labels if not provided
     if molecule_labels is None:
-        print("No molecule labels provided, using all molecules in directory...")
         molecule_files = [f for f in os.listdir(molecule_feature_dir) if f.endswith('.pt')]
         molecule_labels = [os.path.splitext(os.path.basename(f))[0] for f in molecule_files]
-        print(f"Found {len(molecule_labels)} molecules")
        
     num_molecules = len(molecule_labels)
     num_batches = (num_molecules + batch_size - 1) // batch_size
     all_similarities = []
-    
-    print(f"Processing {num_molecules} molecules in {num_batches} batches...")
     
     # Get protein projections
     with torch.no_grad():
@@ -218,4 +217,4 @@ def save_results(results, output_file="retrieval_results.csv"):
     else:
         df.to_csv(output_file, index=False)
     
-    print(f"Results saved to {output_file}")
+    # results saved

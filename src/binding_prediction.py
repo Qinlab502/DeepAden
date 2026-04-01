@@ -56,7 +56,24 @@ def parse_arguments():
     method_group.add_argument("--top_k", type=int, default=3,
                             help="Use top-k method with specified k value")
     
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "gpu"],
+                        help="Device to use: auto, cpu, or gpu (default: auto)")
+    
     return parser.parse_args()
+
+
+def resolve_device(device_arg):
+    """Resolve the device argument to a torch.device."""
+    if device_arg == "gpu":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        else:
+            print("Warning: GPU requested but CUDA is not available. Falling back to CPU.")
+            return torch.device("cpu")
+    elif device_arg == "cpu":
+        return torch.device("cpu")
+    else:  # auto
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def csv_to_json(pocket_csv_path, prediction_csv_path, json_path, logger):
@@ -87,9 +104,7 @@ def csv_to_json(pocket_csv_path, prediction_csv_path, json_path, logger):
         logger.error(f"Prediction CSV columns: {list(pred_df.columns)}")
         return
 
-    logger.info("Aligning pocket and prediction tables on key: 'id'")
     merged = pd.merge(pocket_df, pred_df, on="id", how="inner", suffixes=("", "_pred"))
-    logger.info(f"Merged rows: {len(merged)}")
 
     # 2. 解析 binding_pocket_positions 列（逗号分隔字符串 -> int 列表）
     def parse_positions(pos_str):
@@ -137,83 +152,95 @@ def csv_to_json(pocket_csv_path, prediction_csv_path, json_path, logger):
     try:
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(results, f, ensure_ascii=False, indent=2)
-        logger.info(f"Successfully saved JSON to {json_path}")
+        logger.debug(f"JSON saved to {json_path}")
     except Exception as e:
         logger.error(f"Failed to write JSON: {e}")
 
 
 def main():
     args = parse_arguments()
-    
-    # 确保输出目录存在
-    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+
+    # 解析设备（必须在所有使用 device 的地方之前）
+    device = resolve_device(args.device)
+
+    # 确保输出目录存在（兼容纯文件名情况）
+    output_dir = os.path.dirname(args.output)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
     
     # Initialize logger
-    logger = setup_logger(os.path.dirname(args.output))
+    logger = setup_logger(output_dir or ".")
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(message)s')
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+    logger.handlers.clear()
+    logger.addHandler(console_handler)
+    import time
+    t0 = time.time()
+
+    logger.info("\n\033[1;36m" + "="*55)
+    logger.info("  DeepAden  │  Step 2/2 — Substrate Prediction")
+    logger.info("=" * 55 + "\033[0m")
+    logger.info(f"  \033[90mInput  :\033[0m {args.input}")
+    logger.info(f"  \033[90mDevice :\033[0m {device}\n")
     
     try:
-        logger.info("========== Prediction Pipeline Started ==========")
-        logger.info(f"Input protein file: {args.input}")
-        logger.info(f"Input molecules file: {args.molecules}")
-        logger.info(f"Output file: {args.output}")
-        logger.info(f"Using retrieval method: top_{args.top_k}")
-        
         # 1. Feature computation
-        logger.info("Processing protein features...")
-        precompute_protein_features(args.input, output_dir=args.protein_dir)
+        logger.info(f"  \033[90m[»]\033[0m Computing pocket embeddings (ESM2)...")
+        precompute_protein_features(args.input, output_dir=args.protein_dir, device=device)
+        logger.info(f"  \033[90m[✓]\033[0m Pocket embeddings ready")
         
         # 2. Molecule features (compute only if needed)
         if not os.path.exists(args.molecule_dir):
             os.makedirs(args.molecule_dir, exist_ok=True)
-            logger.info("Computing molecule features...")
-            precompute_molecule_features(args.molecules, output_dir=args.molecule_dir)
-        else:
-            logger.info("Using existing molecule features")
+            logger.info(f"  \033[90m[»]\033[0m Computing molecule features...")
+            precompute_molecule_features(args.molecules, output_dir=args.molecule_dir, device=device)
+            logger.info(f"  \033[90m[✓]\033[0m Molecule features ready")
         
         # 3. Model initialization
-        logger.info("Initializing model...")
         if not os.path.exists(args.weights):
             raise FileNotFoundError(f"Model weights not found at {args.weights}")
             
         model = ContrastiveModel()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         state_dict = torch.load(args.weights, map_location=device)
         model.load_state_dict(state_dict)
         model.to(device)
+        logger.info(f"  \033[90m[✓]\033[0m Model loaded: Contrastive (KDE-calibrated)")
         
-        logger.info(f"Successfully loaded model from {args.weights}")
-       
         # 5. Data preparation
-        logger.info("Loading input data...")
         protein_ids = pd.read_csv(args.input)['id']
         mol_labels = pd.read_csv(args.molecules)['label']
-        logger.info(f"Loaded {len(protein_ids)} proteins and {len(mol_labels)} molecules")
+        logger.info(f"  \033[90m[»]\033[0m Ranking {len(mol_labels)} molecules for {len(protein_ids)} query sequence(s) — top-{args.top_k}...")
         
         # 6. Retrieval process
-        logger.info("Starting retrieval process...")
         results = perform_retrieval(
             model=model,
             protein_ids=protein_ids,
             molecule_labels=mol_labels,
             kde_path=args.calibrator_path,
-            top_k=args.top_k
+            top_k=args.top_k,
+            device=device
         )
         
         # 7. Save results (CSV)
         save_results(results, args.output)
-        logger.info(f"Successfully saved results to {args.output}")
 
-        # 8. 同步生成 JSON：与 args.input/args.output 对齐
-        #    JSON 文件名直接用 output 去掉扩展名再加 .json
+        # 8. 同步生成 JSON
         json_output = os.path.splitext(args.output)[0] + ".json"
         csv_to_json(
-            pocket_csv_path=args.input,          # e.g. ABP_prediction.csv
-            prediction_csv_path=args.output,     # e.g. substrate_predictions_top3.csv
-            json_path=json_output,               # e.g. substrate_predictions_top3.json
+            pocket_csv_path=args.input,
+            prediction_csv_path=args.output,
+            json_path=json_output,
             logger=logger
         )
-        
-        logger.info("========== Prediction Pipeline Completed ==========")
+
+        elapsed = time.time() - t0
+        logger.info(f"  \033[90m[✓]\033[0m Output → {args.output}")
+        logger.info(f"  \033[90m[✓]\033[0m Output → {json_output}")
+        logger.info(f"\n\033[1;32m  Step 2/2 completed in {elapsed:.1f}s\033[0m")
+#         logger.info("\033[1;36m" + "="*55 + "\033[0m\n")
         
     except Exception as e:
         logger.error(f"Pipeline failed: {str(e)}", exc_info=True)

@@ -14,16 +14,16 @@ def ensure_dirs(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def precompute_protein_features(csv_file, output_dir='example/output/protein_data', batch_size=256):
+def precompute_protein_features(csv_file, output_dir='example/output/protein_data', batch_size=256, device=None):
     """
     Precompute protein features using ESM2 model.
     The output embeddings will be 1280-dimensional vectors.
     """
     ensure_dirs(output_dir)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    print("Loading ESM model...")
     model_name = 'model/esm2_t33_650M_UR50D'
     tokenizer = EsmTokenizer.from_pretrained(model_name)
     base_model = EsmForMaskedLM.from_pretrained(model_name)
@@ -31,13 +31,9 @@ def precompute_protein_features(csv_file, output_dir='example/output/protein_dat
     esm_model.eval()
     esm_model.to(device)
     
-    print(f"Reading CSV file: {csv_file}")
     df = pd.read_csv(csv_file)
     ids = df['id'].tolist()
     seqs = df['binding_pocket'].tolist()
-    
-    print(f"Found {len(ids)} sequences.")
-    print(f"ESM2 embedding dimension: 1280")
     
     with tqdm(total=len(seqs), desc="Processing Sequences", unit="seq") as pbar:
         for start_idx in range(0, len(seqs), batch_size):
@@ -65,8 +61,7 @@ def precompute_protein_features(csv_file, output_dir='example/output/protein_dat
             
             pbar.update(len(batch_seqs))
     
-    print(f"All protein features have been processed and saved to {output_dir}")
-    print(f"Each feature file contains a 1280-dimensional embedding vector")
+    # protein features saved
 
 def load_protein_features(protein_ids, feature_dir="example/output/protein_data"):
     """
