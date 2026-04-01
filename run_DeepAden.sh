@@ -41,7 +41,7 @@ MODEL_WEIGHT_NAME="all.weight"
 DEVICE="auto"                   # Device to use: auto | cpu | gpu
 
 function usage() {
-    echo "Usage: $0 (-f <fasta_file> | -g <gbk_file> | -G <genome_fasta>) [-o <output_dir>] [-p <plm_path>] [-c <cm_path>] [-d <binding_model_dir>] [-r <reference_csv>] [-n <processes>] [-k <top_k>] [-m <model_weight_name>]"
+    echo "Usage: $0 (-f <fasta_file> | -g <gbk_file> | -G <genome_fasta>) [-o <output_dir>] [-p <plm_path>] [-c <cm_path>] [-d <binding_model_dir>] [-r <reference_csv>] [-n <processes>] [-k <top_k>] [-m <model_weight_name>] [-D <device>]"
     echo ""
     echo "Input Options (choose one):"
     echo "  -f <fasta_file>           Path to the input protein FASTA file"
